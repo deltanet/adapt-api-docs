@@ -243,7 +243,6 @@ definitions:
         description: Is this user flagged as deleted.
       _tenantId:
         type: string
-        description: Unique identifier for user.
         description: Unique identifier for the tenant record assigned to this user.
       idNumber:
         type: string
