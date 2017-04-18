@@ -1,0 +1,304 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is the API documentation for the Adapt authoring tool. More information
+    on the Adapt authoring tool can be found
+    [here](https://github.com/adaptlearning/adapt_authoring/)
+  version: 0.3.0
+  title: Adapt Authoring
+  license:
+    name: GPL-3.0
+    url: 'https://github.com/adaptlearning/adapt_authoring/blob/master/LICENSE'
+host: 'localhost:5000'
+basePath: /api/
+tags:
+  - name: auth
+    description: Local authentication. The standard basic authentication plugin.
+  - name: users
+    description: Operations about users.
+schemes:
+  - http
+paths:
+  /login:
+    post:
+      tags:
+        - auth
+      summary: Login
+      description: 'End point for basic authentication'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: formData
+          description: Unique identifier representing a specific user.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: Password string.
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Successful login
+          schema:
+            $ref: '#/definitions/Login'
+        '401':
+          description: Unauthorised
+          schema:
+            $ref: '#/definitions/Error'
+  /user:
+    post:
+      tags:
+        - users
+      summary: Create user
+      description: 'The create user endpoint is used to create a single user. A user must have an email, password and be asigned to at least one tenant and role. If a duplicate email is found an error will be returned. The 500 error actually returns HTML, it would be more useful if this was JSON.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: formData
+          description: users email address.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: Password string.
+          required: true
+          type: string
+        - name: _tenantId
+          in: formData
+          description: Collection id for tenant that the user will be assigned to.
+          required: true
+          type: string
+        - name: role
+          in: formData
+          description: Collection id for role that the user will be assigned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfuly created a user
+          schema:
+            $ref: '#/definitions/Usercreate'
+        '500':
+          description: Error
+    get:
+      tags:
+        - users
+      summary: Get users
+      description: 'Returns an array of all users.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of user details
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '500':
+          description: Error.
+  /user/id:
+    get:
+      tags:
+        - users
+      summary: Get a specific user
+      description: 'End point for getting rsults querying a specified user.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing a single user
+          schema:
+              $ref: '#/definitions/User'
+        '500':
+          description: Error.
+  /user/me:
+    get:
+      tags:
+        - users
+      summary: User profile
+      description: 'The User Profile endpoint returns information about the Uber user that has authorized with the application.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing a single user
+          schema:
+              $ref: '#/definitions/Me'
+        '500':
+          description: Error.
+definitions:
+  Login:
+    type: object
+    properties:
+      success:
+        type: boolean
+      id:
+        type: string
+        description: Unique identifier for user.
+      email:
+        type: string
+        description: Users email.
+      tenantId:
+        type: string
+        description: ObjectId for users tenant.
+      tenantName:
+        type: string
+        description: Tenant name.
+      permissions:
+        type: array
+        items:
+          type: string
+  Usercreate:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for user.
+      email:
+        type: string
+        description: Users email.
+      failedLoginCount:
+        type: integer
+        format: int32
+        description: Number of failed login attempts.
+      roles:
+        type: array
+        items:
+          type: string
+        description: An array containing the unique id for each role assigned to the user.
+      auth:
+        type: string
+        description: Authentication type. By default this will return local.
+      idNumber:
+        type: string
+        description: Currently not used.
+      _tenantId:
+        type: string
+        description: Unique identifier for the tenant record assigned to this user.
+      _isDeleted:
+        type: boolean
+        description: Is this user flagged as deleted.
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for user.
+      email:
+        type: string
+        description: Users email.
+      firstAccess:
+        type: string
+        description: The date the user first accessed the application. In dateTime format.
+      lastAccess:
+        type: string
+        description: The date the user last accessed the application. In dateTime format.
+      failedLoginCount:
+        type: integer
+        format: int32
+        description: Number of failed login attempts.
+      roles:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: Unique identifier for user.
+            name:
+              type: string
+              description: Unique identifier for user.
+        description: An array containing the unique id for each role assigned to the user.
+      auth:
+        type: string
+        description: Authentication type. By default this will return local.
+      idNumber:
+        type: string
+        description: Currently not used.
+      _tenantId:
+        type: object
+        properties:
+          _id:
+            type: string
+            description: Unique identifier for user.
+          name:
+            type: string
+            description: Unique identifier for user.
+        description: Unique identifier for the tenant record assigned to this user.
+      _isDeleted:
+        type: boolean
+        description: Is this user flagged as deleted.
+  Me:
+    type: object
+    properties:
+      _isDeleted:
+        type: boolean
+        description: Is this user flagged as deleted.
+      _tenantId:
+        type: string
+        description: Unique identifier for user.
+        description: Unique identifier for the tenant record assigned to this user.
+      idNumber:
+        type: string
+        description: Currently not used.
+      auth:
+        type: string
+        description: Authentication type. By default this will return local.
+      roles:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: Unique identifier for user.
+            name:
+              type: string
+              description: Unique identifier for user.
+        description: An array containing the unique id for each role assigned to the user.
+      failedLoginCount:
+        type: integer
+        format: int32
+        description: Number of failed login attempts.
+      password:
+        type: string
+        description: The hashed password for user.
+      lastAccess:
+        type: string
+        description: The date the user last accessed the application. In dateTime format.
+      invalidatePermissionCache:
+        type: boolean
+        description: To be confirmed
+      firstAccess:
+        type: string
+        description: The date the user first accessed the application. In dateTime format.
+      email:
+        type: string
+        description: Users email.
+      _id:
+        type: string
+        description: Unique identifier for user.
+      __v:
+        type: integer
+        format: int32
+        description: To be confirmed
+      rolesAsName:
+        type: array
+        items:
+          type: string
+        description: An array containing the names of roles assigned to the user.
+  Error:
+    type: object
+    properties:
+      success:
+        type: boolean
+      errorCode:
+        type: integer
+        format: int32
