@@ -16,6 +16,8 @@ tags:
     description: Local authentication. The standard basic authentication plugin.
   - name: users
     description: Operations about users.
+  - name: tenants
+    description: Operations about tenants.
 schemes:
   - http
 paths:
@@ -50,6 +52,22 @@ paths:
           schema:
             $ref: '#/definitions/Error'
   /user:
+    get:
+      tags:
+        - users
+      summary: Get users
+      description: 'Returns an array of all users.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of user details
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/User'
+        '500':
+          description: Error.
     post:
       tags:
         - users
@@ -87,35 +105,87 @@ paths:
             $ref: '#/definitions/Usercreate'
         '500':
           description: Error
-    get:
-      tags:
-        - users
-      summary: Get users
-      description: 'Returns an array of all users.'
-      produces:
-        - application/json
-      responses:
-        '200':
-          description: An array of user details
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/User'
-        '500':
-          description: Error.
-  /user/id:
+  /user/{id}:
     get:
       tags:
         - users
       summary: Get a specific user
-      description: 'End point for getting rsults querying a specified user.'
+      description: 'End point for getting results for a specified user.'
       produces:
         - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The user id.
+          required: true
+          type: string
       responses:
         '200':
           description: An object containing a single user
           schema:
-              $ref: '#/definitions/User'
+            $ref: '#/definitions/User'
+        '500':
+          description: Error.
+    put:
+      tags:
+        - users
+      summary: Get a specific user
+      description: 'End point for updating a specified user.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The user id.
+          required: true
+          type: string
+        - name: email
+          in: formData
+          description: users email address.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: Password string.
+          required: true
+          type: string
+        - name: _tenantId
+          in: formData
+          description: Collection id for tenant that the user will be assigned to.
+          required: true
+          type: string
+        - name: role
+          in: formData
+          description: Collection id for role that the user will be assigned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a single user
+          schema:
+            $ref: '#/definitions/Usercreate'
+        '500':
+          description: Error.
+    delete:
+      tags:
+        - users
+      summary: Destroy a specific user
+      description: 'End point for destroy action on a specified user.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The user id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
         '500':
           description: Error.
   /user/me:
@@ -130,7 +200,73 @@ paths:
         '200':
           description: An object containing a single user
           schema:
-              $ref: '#/definitions/Me'
+            $ref: '#/definitions/Me'
+        '500':
+          description: Error.
+  /user/resetpassword:
+    post:
+      tags:
+        - users
+      summary: Reset password
+      description: 'The reset password endpoint expects an email and new password in the request body. It updates the password for the user record with matching email and attempts to send a confirmation email.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: formData
+          description: Users email address.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: Password string.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+  /user/bulkaction:
+    put:
+      tags:
+        - users
+      summary: Soft removel of users
+      description: 'The bulkaction endpoint expects a boolean value for delete or restore in the request body. It sets the value of _isDeleted on a user record. This endpoint need further clarification in how or if it is used.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+  /userpasswordreset/{token}:
+    get:
+      tags:
+        - users
+      summary: Reset password email endpoint
+      description: 'The endpoint returns for the reset password email. The token is generated on start of reset password process and is time sensitive.'
+      produces:
+        - application/json
+      parameters:
+        - name: token
+          in: path
+          description: A generated string unique to this password reset attempt.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/PasswordresetToken'
         '500':
           description: Error.
 definitions:
@@ -293,6 +429,21 @@ definitions:
         items:
           type: string
         description: An array containing the names of roles assigned to the user.
+  PasswordresetToken:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for this password reset attempt.
+      user:
+        type: string
+        description: Unique identifier for user.
+      issueDate:
+        type: string
+        description: The date the password reset token was generated. In dateTime format
+      ipAddress:
+        type: string
+        description: The IP address of the original remote request that used /user/resetpassword endpoint.
   Error:
     type: object
     properties:
@@ -301,3 +452,8 @@ definitions:
       errorCode:
         type: integer
         format: int32
+  Success:
+    type: object
+    properties:
+      success:
+        type: boolean
