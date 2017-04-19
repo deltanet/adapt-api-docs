@@ -269,6 +269,64 @@ paths:
             $ref: '#/definitions/PasswordresetToken'
         '500':
           description: Error.
+  /tenant:
+    get:
+      tags:
+        - tenants
+      summary: Get all tenants
+      description: 'Returns an array of all tenants.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of tenant details
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
+  /tenant/query:
+    get:
+      tags:
+        - tenants
+      summary: Get all tenants
+      description: 'Query tenants for lazy loading. Can accept query options in body or query parameters.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of tenant details
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
+  /tenant/{id}:
+    get:
+      tags:
+        - tenants
+      summary: Get a single tenant
+      description: 'End point for returning details of a specified tenant.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The tenant id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An single tenant object
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
+
 definitions:
   Login:
     type: object
@@ -444,6 +502,50 @@ definitions:
       ipAddress:
         type: string
         description: The IP address of the original remote request that used /user/resetpassword endpoint.
+  Tenant:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for this tenant.
+      updatedAt:
+        type: string
+        description: The date the tenant record was last changed. In dateTime format.
+      createdAt:
+        type: string
+        description: The date the tenant record was created. In dateTime format.
+      database:
+        type: object
+        properties:
+          dbPort:
+            type: integer
+            format: int32
+            description: Tenant database port.
+          dbPass:
+            type: string
+            description: Password to access the tenant database.
+          dbUser:
+            type: string
+            description: Tenant database user account.
+          dbHost:
+            type: string
+            description: Tenant database host URL.
+          dbName:
+            type: string
+            description: Tenant database host URL.
+      displayName:
+        type: string
+        description: The display name for this tenant.
+      name:
+        type: string
+        description: The application name for this tenant.
+      isMaster:
+        type: boolean
+        description: Is this tenant a master tenant.
+      _isDeleted:
+        type: boolean
+        description: Is this tenant flagged as deleted.
+
   Error:
     type: object
     properties:
