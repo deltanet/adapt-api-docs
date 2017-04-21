@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   description: >-
     This is the API documentation for the Adapt authoring tool. More information
-    on the Adapt authoring tool can be found
+    on the Adapt authoring tool can be found.
     [here](https://github.com/adaptlearning/adapt_authoring/)
   version: 0.3.0
   title: Adapt Authoring
@@ -56,7 +56,7 @@ paths:
       tags:
         - users
       summary: Get users
-      description: 'Returns an array of all users.'
+      description: 'Returns an array of all users. Get requests for /user/{id} with no match will return a status code of 200 and false string in the body.'
       produces:
         - application/json
       responses:
@@ -113,6 +113,7 @@ paths:
       description: 'End point for getting results for a specified user.'
       produces:
         - application/json
+        - text/plain; charset=utf-8
       parameters:
         - name: id
           in: path
@@ -308,9 +309,10 @@ paths:
       tags:
         - tenants
       summary: Get a single tenant
-      description: 'End point for returning details of a specified tenant.'
+      description: 'End point for returning details of a specified tenant. Get requests for /tenant/{id} with no match will return a status code of 200 and false string in the body.'
       produces:
         - application/json
+        - text/plain; charset=utf-8
       parameters:
         - name: id
           in: path
@@ -326,7 +328,96 @@ paths:
               $ref: '#/definitions/Tenant'
         '500':
           description: Error.
-
+    post:
+      tags:
+        - tenants
+      summary: Create a single tenant
+      description: 'End point for creating a tenant record.'
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: name
+          in: formData
+          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
+          required: true
+          type: string
+        - name: displayName
+          in: formData
+          description: Tenant name displayed in interface.
+          required: true
+          type: string
+        - name: isMaster
+          in: formData
+          description: Indicates if this tenant should be a master tenant.
+          required: true
+          type: boolean
+      responses:
+        '200':
+          description: An single tenant object
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
+    put:
+      tags:
+        - tenants
+      summary: Update a tenant
+      description: 'End point for updating a tenant record. Put request with no matching record will return 500 status code.'
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: id
+          in: path
+          description: The tenant id.
+          required: true
+          type: string
+        - name: name
+          in: formData
+          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
+          required: true
+          type: string
+        - name: displayName
+          in: formData
+          description: Tenant name displayed in interface.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An single tenant object
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
+    delete:
+      tags:
+        - tenants
+      summary: Delete (softly) a tenant
+      description: 'End point for deleting a tenant. Records are soft deleted, i.e "_isDeleted" : true. Delete requests for /tenant/{id} with no match will return a status code of 500.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The tenant id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An single tenant object
+          schema:
+            type: object
+            items:
+              $ref: '#/definitions/TenantDelete'
+        '500':
+          description: Error.
 definitions:
   Login:
     type: object
@@ -559,3 +650,10 @@ definitions:
     properties:
       success:
         type: boolean
+  TenantDelete:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
