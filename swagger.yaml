@@ -312,7 +312,6 @@ paths:
       description: 'End point for returning details of a specified tenant. Get requests for /tenant/{id} with no match will return a status code of 200 and false string in the body.'
       produces:
         - application/json
-        - text/plain; charset=utf-8
       parameters:
         - name: id
           in: path
@@ -323,9 +322,7 @@ paths:
         '200':
           description: An single tenant object
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/Tenant'
+            $ref: '#/definitions/Tenant'
         '500':
           description: Error.
     post:
@@ -357,9 +354,7 @@ paths:
         '200':
           description: An single tenant object
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/Tenant'
+            $ref: '#/definitions/Tenant'
         '500':
           description: Error.
     put:
@@ -391,9 +386,7 @@ paths:
         '200':
           description: An single tenant object
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/Tenant'
+            $ref: '#/definitions/Tenant'
         '500':
           description: Error.
     delete:
@@ -413,9 +406,7 @@ paths:
         '200':
           description: An single tenant object
           schema:
-            type: object
-            items:
-              $ref: '#/definitions/TenantDelete'
+            $ref: '#/definitions/TenantDelete'
         '500':
           description: Error.
 definitions:
@@ -636,7 +627,13 @@ definitions:
       _isDeleted:
         type: boolean
         description: Is this tenant flagged as deleted.
-
+  TenantDelete:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
   Error:
     type: object
     properties:
@@ -650,10 +647,3 @@ definitions:
     properties:
       success:
         type: boolean
-  TenantDelete:
-    type: object
-    properties:
-      success:
-        type: boolean
-      message:
-        type: string
