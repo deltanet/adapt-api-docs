@@ -4,7 +4,7 @@ info:
     This is the API documentation for the Adapt authoring tool. More information
     on the Adapt authoring tool can be found.
     [here](https://github.com/adaptlearning/adapt_authoring/)
-  version: 0.3.0
+  version: "0.0.2"
   title: Adapt Authoring
   license:
     name: GPL-3.0
@@ -18,6 +18,8 @@ tags:
     description: Operations about users.
   - name: tenants
     description: Operations about tenants.
+  - name: courses
+    description: Operations about Courses.
 schemes:
   - http
 paths:
@@ -50,7 +52,7 @@ paths:
         '401':
           description: Unauthorised
           schema:
-            $ref: '#/definitions/Error'
+            $ref: '#/definitions/ErrorCode'
   /user:
     get:
       tags:
@@ -287,6 +289,38 @@ paths:
               $ref: '#/definitions/Tenant'
         '500':
           description: Error.
+    post:
+      tags:
+        - tenants
+      summary: Create a single tenant
+      description: 'End point for creating a tenant record.'
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: name
+          in: formData
+          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
+          required: true
+          type: string
+        - name: displayName
+          in: formData
+          description: Tenant name displayed in interface.
+          required: true
+          type: string
+        - name: isMaster
+          in: formData
+          description: Indicates if this tenant should be a master tenant.
+          required: true
+          type: boolean
+      responses:
+        '200':
+          description: An single tenant object
+          schema:
+            $ref: '#/definitions/Tenant'
+        '500':
+          description: Error.
   /tenant/query:
     get:
       tags:
@@ -318,38 +352,6 @@ paths:
           description: The tenant id.
           required: true
           type: string
-      responses:
-        '200':
-          description: An single tenant object
-          schema:
-            $ref: '#/definitions/Tenant'
-        '500':
-          description: Error.
-    post:
-      tags:
-        - tenants
-      summary: Create a single tenant
-      description: 'End point for creating a tenant record.'
-      produces:
-        - application/json
-      consumes:
-        - application/x-www-form-urlencoded
-      parameters:
-        - name: name
-          in: formData
-          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
-          required: true
-          type: string
-        - name: displayName
-          in: formData
-          description: Tenant name displayed in interface.
-          required: true
-          type: string
-        - name: isMaster
-          in: formData
-          description: Indicates if this tenant should be a master tenant.
-          required: true
-          type: boolean
       responses:
         '200':
           description: An single tenant object
@@ -409,6 +411,187 @@ paths:
             $ref: '#/definitions/TenantDelete'
         '500':
           description: Error.
+  /course:
+    get:
+      tags:
+        - courses
+      summary: Get courses
+      description: 'Returns an array of all courses.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of course details
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Course'
+        '500':
+          description: Error.
+    post:
+      tags:
+        - courses
+      summary: Create a course
+      description: 'End point for creating a course. See [course schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema) for full list of fields.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: title
+          in: formData
+          description: Title shown in the authoring tool.
+          required: true
+          type: string
+        - name: displayName
+          in: formData
+          description: Display title.
+          required: false
+          type: string
+        - name: body
+          in: formData
+          description: Course body text.
+          required: false
+          type: string
+        - name: _isShared
+          in: formData
+          description: Set if course is private or shared between tenant users.
+          required: true
+          type: boolean
+        - name: createdBy
+          in: formData
+          description: User Id, assigns ownership of the course.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing details of the created course
+          schema:
+            $ref: '#/definitions/CourseCreate'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /course/{id}:
+    get:
+      tags:
+        - courses
+      summary: Get a specific course
+      description: 'End point for getting results for a specified course.'
+      produces:
+        - application/json
+        - text/plain; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          description: The course id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a single user
+          schema:
+            $ref: '#/definitions/Course'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    put:
+      tags:
+        - courses
+      summary: Update a specific course
+      description: 'End point for updating a specified course. See [course schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema) for full list of fields.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The course id.
+          required: true
+          type: string
+        - name: title
+          in: formData
+          description: Title shown in the authoring tool.
+          required: true
+          type: string
+        - name: displayName
+          in: formData
+          description: Display title.
+          required: false
+          type: string
+        - name: body
+          in: formData
+          description: Course body text.
+          required: false
+          type: string
+        - name: _isShared
+          in: formData
+          description: Set if course is private or shared between tenant users.
+          required: true
+          type: boolean
+        - name: createdBy
+          in: formData
+          description: User Id, assigns ownership of the course.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    delete:
+      tags:
+        - courses
+      summary: Delete a specific course
+      description: 'End point for deleting a specified course.'
+      produces:
+        - application/json
+        - text/plain; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          description: The course id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /duplicatecourse/{id}:
+    get:
+      tags:
+        - courses
+      summary: Duplicate a course
+      description: 'Duplicates the course matching the path id. Returns an object with the new course id.'
+      produces:
+        - application/json
+        - text/plain; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          description: The id of the course to be duplicated.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing the new course id and success status
+          schema:
+            $ref: '#/definitions/DuplicateCourse'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
 definitions:
   Login:
     type: object
@@ -634,7 +817,235 @@ definitions:
         type: boolean
       message:
         type: string
-  Error:
+  Course:
+    type: object
+    properties:
+      _globals:
+        type: object
+        properties:
+          _accessibility:
+            type: object
+            properties:
+              accessibilityToggleTextOn: 
+                type: string
+              accessibilityToggleTextOff:
+                type: string
+              skipNavigationText:
+                type: string
+              _accessibilityInstructions:
+                type: object
+                properties:
+                  touch: 
+                    type: string
+                  notouch: 
+                    type: string
+                  ipad: 
+                    type: string
+              _ariaLabels:
+                type: object
+                properties:
+                  navigation: 
+                    type: string
+                  skipNavigation: 
+                    type: string
+                  menuLoaded: 
+                    type: string
+                  menu: 
+                    type: string
+                  menuItem: 
+                    type: string
+                  menuViewButton: 
+                    type: string
+                  page: 
+                    type: string
+                  pageLoaded: 
+                    type: string
+                  previous: 
+                    type: string
+                  navigationBack: 
+                    type: string
+                  navigationDrawer: 
+                    type: string
+                  closeResources: 
+                    type: string
+                  drawerBack: 
+                    type: string
+                  drawer: 
+                    type: string
+                  closePopup: 
+                    type: string
+                  next: 
+                    type: string
+                  done: 
+                    type: string
+                  complete: 
+                    type: string
+                  incomplete: 
+                    type: string
+                  correct: 
+                    type: string
+                  locked: 
+                    type: string
+                  accessibilityToggleButton: 
+                    type: string
+                  feedbackPopUp: 
+                    type: string
+                  visited: 
+                    type: string
+                  menuBack: 
+                    type: string
+                  menuIndicatorHeading: 
+                    type: string
+          _components:
+            type: object
+      _id: 
+        type: string
+        description: Unique identifier for this course.
+      _start:
+        type: object
+        properties:
+          _isMenuDisabled: 
+            type: boolean
+          _force: 
+            type: boolean
+          _startIds: 
+            type: array
+          _isEnabled: 
+            type: boolean
+      _type: 
+        type: string
+      createdAt: 
+        type: string
+      createdBy: 
+        type: string
+      updatedAt: 
+        type: string
+      customStyle: 
+        type: string
+      _lockType: 
+        type: string
+      _isShared: 
+        type: boolean
+      _hasPreview: 
+        type: boolean
+      _isSelected: 
+        type: boolean
+      _classes: 
+        type: string
+      tags: 
+        type: array
+      _buttons:
+        type: object
+        properties:
+          disabledAriaLabel: 
+            type: string
+          remainingAttemptText: 
+            type: string
+          remainingAttemptsText: 
+            type: string
+          _showFeedback:
+            type: object
+            properties:
+              ariaLabel: 
+                type: string
+              buttonText: 
+                type: string
+          _hideCorrectAnswer:
+            type: object
+            properties:
+              ariaLabel: 
+                type: string
+              buttonText: 
+                type: string
+          _showCorrectAnswer:
+            type: object
+            properties:
+              ariaLabel: 
+                type: string
+              buttonText: 
+                type: string
+          _reset:
+            type: object
+            properties:
+              ariaLabel: 
+                type: string
+              buttonText: 
+                type: string
+          _submit:
+            type: object
+            properties:
+              ariaLabel: 
+                type: string
+              buttonText: 
+                type: string
+      _latestTrackingId: 
+        type: integer
+        format: int32
+      heroImage: 
+        type: string
+      body: 
+        type: string
+      displayTitle: 
+        type: string
+      title: 
+        type: string
+      _tenantId: 
+        type: string
+      _isDeleted: 
+        type: boolean
+  CourseCreate:
+    type: object
+    properties:
+      _id: 
+        type: string
+        description: Unique identifier for this course.
+      _type: 
+        type: string
+      createdAt: 
+        type: string
+      createdBy: 
+        type: string
+      updatedAt: 
+        type: string
+      customStyle: 
+        type: string
+      _lockType: 
+        type: string
+      _isShared: 
+        type: boolean
+      _hasPreview: 
+        type: boolean
+      _isSelected: 
+        type: boolean
+      _classes: 
+        type: string
+      tags: 
+        type: array
+      _buttons: 
+        type: string
+      _latestTrackingId: 
+        type: integer
+        format: int32
+      heroImage: 
+        type: string
+      body: 
+        type: string
+      displayTitle: 
+        type: string
+      title: 
+        type: string
+      _tenantId: 
+        type: string
+      _isDeleted: 
+        type: boolean
+  DuplicateCourse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      newCourseId:
+        type: string
+  ErrorCode:
     type: object
     properties:
       success:
@@ -642,6 +1053,13 @@ definitions:
       errorCode:
         type: integer
         format: int32
+  ErrorMessage:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
   Success:
     type: object
     properties:
