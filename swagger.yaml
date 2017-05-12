@@ -20,6 +20,8 @@ tags:
     description: Operations about tenants.
   - name: courses
     description: Operations about Courses.
+  - name: output
+    description: Output endpoints, e.g preview, publish.
 schemes:
   - http
 paths:
@@ -592,6 +594,54 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
+  /output/{plugin}/publish/{id}:
+    get:
+      tags:
+        - output
+      summary: Download/publish a course
+      description: 'Endpoint for downloading a built course. The standard plugin is "adapt". Alternative values would be defined in an output plugin installed in the authoring tool in: /plugins/output/'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the course to be downloaded.
+          required: true
+          type: string
+        - name: plugin
+          in: path
+          description: The plugin to be used for downloading.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing the a link to download the course and success status
+          schema:
+            $ref: '#/definitions/Download'
+  /output/{plugin}/preview/{id}:
+    get:
+      tags:
+        - output
+      summary: Preview a course
+      description: 'Endpoint for previewing course. This is more of a trigger to builder a course. The preview window URL path is created in the frontend JS. The standard plugin is "adapt". Alternative values would be defined in an output plugin installed in the authoring tool in: /plugins/output/'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the course to be downloaded.
+          required: true
+          type: string
+        - name: plugin
+          in: path
+          description: The plugin to be used for downloading.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing the a link to download the course and success status
+          schema:
+            $ref: '#/definitions/Preview'
 definitions:
   Login:
     type: object
@@ -1045,6 +1095,30 @@ definitions:
         type: boolean
       newCourseId:
         type: string
+  Download:
+    type: object
+    properties:
+      success:
+        type: boolean
+      payload:
+        type: object
+        properties:
+          success:
+            type: boolean
+          filename:
+            type: string
+          zipName:
+            type: string
+  Preview:
+    type: object
+    properties:
+      success:
+        type: boolean
+      payload:
+        type: object
+        properties:
+          success:
+            type: boolean
   ErrorCode:
     type: object
     properties:
