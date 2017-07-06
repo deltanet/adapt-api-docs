@@ -413,7 +413,7 @@ paths:
             $ref: '#/definitions/TenantDelete'
         '500':
           description: Error.
-  /course:
+  /content/course:
     get:
       tags:
         - courses
@@ -474,7 +474,7 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
-  /course/{id}:
+  /content/course/{id}:
     get:
       tags:
         - courses
@@ -570,7 +570,7 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
-  /duplicatecourse/{id}:
+  /content/duplicatecourse/{id}:
     get:
       tags:
         - courses
