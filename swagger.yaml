@@ -642,6 +642,88 @@ paths:
           description: An object containing the a link to download the course and success status
           schema:
             $ref: '#/definitions/Preview'
+  /download/{tenant}/{course}:
+    get:
+      tags:
+        - output
+      summary: Course download information
+      description: 'Return information for downloading the published course.'
+      produces:
+        - application/json
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be downloaded.
+          required: true
+          type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing values useful for downloading the published course
+          schema:
+            $ref: '#/definitions/DownloadInfo'
+  /download/{tenant}/{course}/{title}/download.zip:
+    get:
+      tags:
+        - output
+      summary: Download a published course
+      description: 'Returns a zip of the published course.'
+      produces:
+        - application/zip
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be downloaded.
+          required: true
+          type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          type: string
+        - name: title
+          in: path
+          description: The title of the course.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Streams a zip file of the published course
+  /lang/{lang}:
+    get:
+      tags:
+        - language
+      summary: Returns selected language strings for I18n.
+      description: 'Endpoint for application localisation. Returns default en.json if lang not found.'
+      produces:
+        - application/json
+      parameters:
+        - name: lang
+          in: path
+          description: The two letter language code used to define the installed language in routes/lang.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing all translated values as key/value pairs.
+  /config/config.json:
+    get:
+      tags:
+        - configuration
+      summary: Returns allowed configuration keys.
+      description: 'Endpoint for accessing allowed application configuration values. e.g max login attempts.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing allowed configuration keys.
+          schema:
+            $ref: '#/definitions/Config'
+
 definitions:
   Login:
     type: object
@@ -876,7 +958,7 @@ definitions:
           _accessibility:
             type: object
             properties:
-              accessibilityToggleTextOn: 
+              accessibilityToggleTextOn:
                 type: string
               accessibilityToggleTextOff:
                 type: string
@@ -885,208 +967,208 @@ definitions:
               _accessibilityInstructions:
                 type: object
                 properties:
-                  touch: 
+                  touch:
                     type: string
-                  notouch: 
+                  notouch:
                     type: string
-                  ipad: 
+                  ipad:
                     type: string
               _ariaLabels:
                 type: object
                 properties:
-                  navigation: 
+                  navigation:
                     type: string
-                  skipNavigation: 
+                  skipNavigation:
                     type: string
-                  menuLoaded: 
+                  menuLoaded:
                     type: string
-                  menu: 
+                  menu:
                     type: string
-                  menuItem: 
+                  menuItem:
                     type: string
-                  menuViewButton: 
+                  menuViewButton:
                     type: string
-                  page: 
+                  page:
                     type: string
-                  pageLoaded: 
+                  pageLoaded:
                     type: string
-                  previous: 
+                  previous:
                     type: string
-                  navigationBack: 
+                  navigationBack:
                     type: string
-                  navigationDrawer: 
+                  navigationDrawer:
                     type: string
-                  closeResources: 
+                  closeResources:
                     type: string
-                  drawerBack: 
+                  drawerBack:
                     type: string
-                  drawer: 
+                  drawer:
                     type: string
-                  closePopup: 
+                  closePopup:
                     type: string
-                  next: 
+                  next:
                     type: string
-                  done: 
+                  done:
                     type: string
-                  complete: 
+                  complete:
                     type: string
-                  incomplete: 
+                  incomplete:
                     type: string
-                  correct: 
+                  correct:
                     type: string
-                  locked: 
+                  locked:
                     type: string
-                  accessibilityToggleButton: 
+                  accessibilityToggleButton:
                     type: string
-                  feedbackPopUp: 
+                  feedbackPopUp:
                     type: string
-                  visited: 
+                  visited:
                     type: string
-                  menuBack: 
+                  menuBack:
                     type: string
-                  menuIndicatorHeading: 
+                  menuIndicatorHeading:
                     type: string
           _components:
             type: object
-      _id: 
+      _id:
         type: string
         description: Unique identifier for this course.
       _start:
         type: object
         properties:
-          _isMenuDisabled: 
+          _isMenuDisabled:
             type: boolean
-          _force: 
+          _force:
             type: boolean
-          _startIds: 
+          _startIds:
             type: array
-          _isEnabled: 
+          _isEnabled:
             type: boolean
-      _type: 
+      _type:
         type: string
-      createdAt: 
+      createdAt:
         type: string
-      createdBy: 
+      createdBy:
         type: string
-      updatedAt: 
+      updatedAt:
         type: string
-      customStyle: 
+      customStyle:
         type: string
-      _lockType: 
+      _lockType:
         type: string
-      _isShared: 
+      _isShared:
         type: boolean
-      _hasPreview: 
+      _hasPreview:
         type: boolean
-      _isSelected: 
+      _isSelected:
         type: boolean
-      _classes: 
+      _classes:
         type: string
-      tags: 
+      tags:
         type: array
       _buttons:
         type: object
         properties:
-          disabledAriaLabel: 
+          disabledAriaLabel:
             type: string
-          remainingAttemptText: 
+          remainingAttemptText:
             type: string
-          remainingAttemptsText: 
+          remainingAttemptsText:
             type: string
           _showFeedback:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _hideCorrectAnswer:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _showCorrectAnswer:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _reset:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _submit:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
-      _latestTrackingId: 
+      _latestTrackingId:
         type: integer
         format: int32
-      heroImage: 
+      heroImage:
         type: string
-      body: 
+      body:
         type: string
-      displayTitle: 
+      displayTitle:
         type: string
-      title: 
+      title:
         type: string
-      _tenantId: 
+      _tenantId:
         type: string
-      _isDeleted: 
+      _isDeleted:
         type: boolean
   CourseCreate:
     type: object
     properties:
-      _id: 
+      _id:
         type: string
         description: Unique identifier for this course.
-      _type: 
+      _type:
         type: string
-      createdAt: 
+      createdAt:
         type: string
-      createdBy: 
+      createdBy:
         type: string
-      updatedAt: 
+      updatedAt:
         type: string
-      customStyle: 
+      customStyle:
         type: string
-      _lockType: 
+      _lockType:
         type: string
-      _isShared: 
+      _isShared:
         type: boolean
-      _hasPreview: 
+      _hasPreview:
         type: boolean
-      _isSelected: 
+      _isSelected:
         type: boolean
-      _classes: 
+      _classes:
         type: string
-      tags: 
+      tags:
         type: array
-      _buttons: 
+      _buttons:
         type: string
-      _latestTrackingId: 
+      _latestTrackingId:
         type: integer
         format: int32
-      heroImage: 
+      heroImage:
         type: string
-      body: 
+      body:
         type: string
-      displayTitle: 
+      displayTitle:
         type: string
-      title: 
+      title:
         type: string
-      _tenantId: 
+      _tenantId:
         type: string
-      _isDeleted: 
+      _isDeleted:
         type: boolean
   DuplicateCourse:
     type: object
@@ -1139,3 +1221,23 @@ definitions:
     properties:
       success:
         type: boolean
+  Config:
+    type: object
+    properties:
+      rootUrl:
+        type: string
+      outputPlugin:
+        type: string
+      masterTenantID:
+        type: string
+      recaptchaSiteKey:
+        type: string
+      useSmtp:
+        type: boolean
+      useffmpeg:
+        type: boolean
+      isProduction:
+        type: boolean
+      maxLoginAttempts:
+        type: integer
+        format: int32
