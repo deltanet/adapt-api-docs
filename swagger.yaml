@@ -413,6 +413,34 @@ paths:
             $ref: '#/definitions/TenantDelete'
         '500':
           description: Error.
+  /tenant/duplicatecourse/{id}/{userId}:
+    get:
+      tags:
+        - tenants
+      summary: Copy a course and all assets to a tenant
+      description: 'End point for copying a course and all assets to a tenant. The tenant userId should ideally have tenant admin role.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The course id.
+          required: true
+          type: string
+        - name: userId
+          in: path
+          description: The tenant user id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing the new course id and success status
+          schema:
+            $ref: '#/definitions/DuplicateCourse'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
   /content/course:
     get:
       tags:
@@ -876,7 +904,7 @@ definitions:
           _accessibility:
             type: object
             properties:
-              accessibilityToggleTextOn: 
+              accessibilityToggleTextOn:
                 type: string
               accessibilityToggleTextOff:
                 type: string
@@ -885,208 +913,214 @@ definitions:
               _accessibilityInstructions:
                 type: object
                 properties:
-                  touch: 
+                  touch:
                     type: string
-                  notouch: 
+                  notouch:
                     type: string
-                  ipad: 
+                  ipad:
                     type: string
               _ariaLabels:
                 type: object
                 properties:
-                  navigation: 
+                  navigation:
                     type: string
-                  skipNavigation: 
+                  skipNavigation:
                     type: string
-                  menuLoaded: 
+                  menuLoaded:
                     type: string
-                  menu: 
+                  menu:
                     type: string
-                  menuItem: 
+                  menuItem:
                     type: string
-                  menuViewButton: 
+                  menuViewButton:
                     type: string
-                  page: 
+                  page:
                     type: string
-                  pageLoaded: 
+                  pageLoaded:
                     type: string
-                  previous: 
+                  previous:
                     type: string
-                  navigationBack: 
+                  navigationBack:
                     type: string
-                  navigationDrawer: 
+                  navigationDrawer:
                     type: string
-                  closeResources: 
+                  closeResources:
                     type: string
-                  drawerBack: 
+                  drawerBack:
                     type: string
-                  drawer: 
+                  drawer:
                     type: string
-                  closePopup: 
+                  closePopup:
                     type: string
-                  next: 
+                  next:
                     type: string
-                  done: 
+                  done:
                     type: string
-                  complete: 
+                  complete:
                     type: string
-                  incomplete: 
+                  incomplete:
                     type: string
-                  correct: 
+                  correct:
                     type: string
-                  locked: 
+                  locked:
                     type: string
-                  accessibilityToggleButton: 
+                  accessibilityToggleButton:
                     type: string
-                  feedbackPopUp: 
+                  feedbackPopUp:
                     type: string
-                  visited: 
+                  visited:
                     type: string
-                  menuBack: 
+                  menuBack:
                     type: string
-                  menuIndicatorHeading: 
+                  menuIndicatorHeading:
                     type: string
           _components:
             type: object
-      _id: 
+      _id:
         type: string
         description: Unique identifier for this course.
       _start:
         type: object
         properties:
-          _isMenuDisabled: 
+          _isMenuDisabled:
             type: boolean
-          _force: 
+          _force:
             type: boolean
-          _startIds: 
+          _startIds:
             type: array
-          _isEnabled: 
+            items:
+              type: string
+          _isEnabled:
             type: boolean
-      _type: 
+      _type:
         type: string
-      createdAt: 
+      createdAt:
         type: string
-      createdBy: 
+      createdBy:
         type: string
-      updatedAt: 
+      updatedAt:
         type: string
-      customStyle: 
+      customStyle:
         type: string
-      _lockType: 
+      _lockType:
         type: string
-      _isShared: 
+      _isShared:
         type: boolean
-      _hasPreview: 
+      _hasPreview:
         type: boolean
-      _isSelected: 
+      _isSelected:
         type: boolean
-      _classes: 
+      _classes:
         type: string
-      tags: 
+      tags:
         type: array
+        items:
+          type: string
       _buttons:
         type: object
         properties:
-          disabledAriaLabel: 
+          disabledAriaLabel:
             type: string
-          remainingAttemptText: 
+          remainingAttemptText:
             type: string
-          remainingAttemptsText: 
+          remainingAttemptsText:
             type: string
           _showFeedback:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _hideCorrectAnswer:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _showCorrectAnswer:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _reset:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
           _submit:
             type: object
             properties:
-              ariaLabel: 
+              ariaLabel:
                 type: string
-              buttonText: 
+              buttonText:
                 type: string
-      _latestTrackingId: 
+      _latestTrackingId:
         type: integer
         format: int32
-      heroImage: 
+      heroImage:
         type: string
-      body: 
+      body:
         type: string
-      displayTitle: 
+      displayTitle:
         type: string
-      title: 
+      title:
         type: string
-      _tenantId: 
+      _tenantId:
         type: string
-      _isDeleted: 
+      _isDeleted:
         type: boolean
   CourseCreate:
     type: object
     properties:
-      _id: 
+      _id:
         type: string
         description: Unique identifier for this course.
-      _type: 
+      _type:
         type: string
-      createdAt: 
+      createdAt:
         type: string
-      createdBy: 
+      createdBy:
         type: string
-      updatedAt: 
+      updatedAt:
         type: string
-      customStyle: 
+      customStyle:
         type: string
-      _lockType: 
+      _lockType:
         type: string
-      _isShared: 
+      _isShared:
         type: boolean
-      _hasPreview: 
+      _hasPreview:
         type: boolean
-      _isSelected: 
+      _isSelected:
         type: boolean
-      _classes: 
+      _classes:
         type: string
-      tags: 
+      tags:
         type: array
-      _buttons: 
+        items:
+          type: string
+      _buttons:
         type: string
-      _latestTrackingId: 
+      _latestTrackingId:
         type: integer
         format: int32
-      heroImage: 
+      heroImage:
         type: string
-      body: 
+      body:
         type: string
-      displayTitle: 
+      displayTitle:
         type: string
-      title: 
+      title:
         type: string
-      _tenantId: 
+      _tenantId:
         type: string
-      _isDeleted: 
+      _isDeleted:
         type: boolean
   DuplicateCourse:
     type: object
