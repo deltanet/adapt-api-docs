@@ -22,6 +22,14 @@ tags:
     description: Operations about Courses.
   - name: output
     description: Output endpoints, e.g preview, publish.
+  - name: plugins
+    description: Operations about plugins.
+  - name: language
+    description: End point for localisation.
+  - name: configuration
+    description: End point for getting configuration data.
+  - name: tags
+    description: End point for getting tags.
 schemes:
   - http
 paths:
@@ -570,7 +578,7 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
-  /content/duplicatecourse/{id}:
+  /duplicatecourse/{id}:
     get:
       tags:
         - courses
@@ -594,6 +602,174 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
+  /my/course:
+    get:
+      tags:
+        - courses
+      summary: Return my courses
+      description: 'Returns an object with all of the courses owned by the authenticated user. Array is empty if user does not own any courses'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing an array of courses
+          schema:
+            $ref: '#/definitions/MyCourse'
+  /shared/course:
+    get:
+      tags:
+        - courses
+      summary: Return shared courses
+      description: 'Returns an object with all of the courses shared with the authenticated user. Array is empty if no courses are shared.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing an array of courses
+          schema:
+            $ref: '#/definitions/MyCourse'
+  /extension/disable/{courseid}:
+    post:
+      tags:
+        - plugins
+      summary: Remove extensions from a course TODO actually consumes JSON but swagger does not allow this.
+      description: 'End point for remove an extension from content collections for a given course.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: courseid
+          in: path
+          description: Course id from which the extensions will be removed.
+          required: true
+          type: string
+        - name: extensions
+          in: formData
+          description: An array of extension id's to be removed.
+          required: true
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /extension/enable/{courseid}:
+    post:
+      tags:
+        - plugins
+      summary: Adds extensions to a course TODO actually consumes JSON but swagger does not allow this.
+      description: 'End point for adding an extension to a course and its content collections.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: courseid
+          in: path
+          description: Course id to which the extensions will be added.
+          required: true
+          type: string
+        - name: extensions
+          in: formData
+          description: An array of extension id's to be added.
+          required: true
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /menu/{menuid}/makeitso/{courseid}:
+    post:
+      tags:
+        - plugins
+      summary: Enables a menu for a course TODO - if the courseid is not found it returns success = true
+      description: 'End point for adding a menu plugin to a course.'
+      produces:
+        - application/json
+      parameters:
+        - name: menuid
+          in: path
+          description: The id of the menu plugin to be added.
+          required: true
+          type: string
+        - name: courseid
+          in: path
+          description: Course id to which the menu will be added.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /theme/{themeid}/makeitso/{courseid}:
+    post:
+      tags:
+        - plugins
+      summary: Enables a theme for a course TODO - if the courseid is not found it returns success = true
+      description: 'End point for adding a theme plugin to a course.'
+      produces:
+        - application/json
+      parameters:
+        - name: themeid
+          in: path
+          description: The id of the theme plugin to be added.
+          required: true
+          type: string
+        - name: courseid
+          in: path
+          description: Course id to which the theme will be added.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /theme/preview/{themename}/{version}:
+    get:
+      tags:
+        - plugins
+      summary: Get the theme preview image
+      description: 'Endpoint for downloading the theme preview image'
+      produces:
+        - image/jpg
+      parameters:
+        - name: themename
+          in: path
+          description: The name of the theme.
+          required: true
+          type: string
+        - name: version
+          in: path
+          description: The version of the theme.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Streams a image file
   /output/{plugin}/publish/{id}:
     get:
       tags:
@@ -665,7 +841,7 @@ paths:
         '200':
           description: An object containing values useful for downloading the published course
           schema:
-            $ref: '#/definitions/DownloadInfo'
+            $ref: '#/definitions/Download'
   /download/{tenant}/{course}/{title}/download.zip:
     get:
       tags:
@@ -772,7 +948,19 @@ paths:
           description: An object containing allowed configuration keys.
           schema:
             $ref: '#/definitions/Config'
-
+  /autocomplete/tag:
+    get:
+      tags:
+        - tags
+      summary: Returns all tags.
+      description: 'Endpoint for accessing tags. Returns all valid tags.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing all tags.
+          schema:
+            $ref: '#/definitions/Tags'
 definitions:
   Login:
     type: object
@@ -1091,6 +1279,8 @@ definitions:
             type: boolean
           _startIds:
             type: array
+            items:
+              type: string
           _isEnabled:
             type: boolean
       _type:
@@ -1115,6 +1305,8 @@ definitions:
         type: string
       tags:
         type: array
+        items:
+          type: string
       _buttons:
         type: object
         properties:
@@ -1202,6 +1394,8 @@ definitions:
         type: string
       tags:
         type: array
+        items:
+          type: string
       _buttons:
         type: string
       _latestTrackingId:
@@ -1225,6 +1419,32 @@ definitions:
       success:
         type: boolean
       newCourseId:
+        type: string
+  MyCourse:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for this course.
+      _type:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      updatedAt:
+        type: string
+      _isShared:
+        type: boolean
+      tags:
+        type: array
+        items:
+          type: string
+      heroImage:
+        type: string
+      title:
+        type: string
+      _tenantId:
         type: string
   Download:
     type: object
@@ -1290,3 +1510,12 @@ definitions:
       maxLoginAttempts:
         type: integer
         format: int32
+  Tags:
+    type: object
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+      _id:
+        type: string
