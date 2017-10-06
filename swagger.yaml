@@ -55,7 +55,7 @@ paths:
           required: true
           type: string
       responses:
-        '204':
+        '200':
           description: Successful login
           schema:
             $ref: '#/definitions/Login'
@@ -80,7 +80,7 @@ paths:
           required: true
           type: string
       responses:
-        '204':
+        '200':
           description: Successful login
           schema:
             $ref: '#/definitions/Login'
@@ -97,7 +97,7 @@ paths:
       produces:
         - application/json
       responses:
-        '204':
+        '200':
           description: Successful logout
           schema:
             $ref: '#/definitions/Success'
@@ -106,7 +106,7 @@ paths:
       tags:
         - auth
       summary: Register
-      description: ''
+      description: 'Not sure if this is used or not...'
       consumes:
         - application/x-www-form-urlencoded
       produces:
@@ -128,12 +128,57 @@ paths:
           required: true
           type: string
       responses:
-        '204':
+        '200':
           description: New user account details
           schema:
             $ref: '#/definitions/Register'
-
-
+  /authcheck:
+    get:
+      tags:
+        - auth
+      summary: Get authenticated session details
+      description: 'Returns an objest containing values for the currently authenticated session.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Current authenticated session values
+          schema:
+            $ref: '#/definitions/UserSession'
+  /userpasswordreset/{token}:
+    post:
+      tags:
+        - auth
+      summary: Reset password
+      description: 'Allows the user to change their password after receiving a reset password email. TODO - check if token needs to be passed in the path and body.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: token
+          in: path
+          description: The token created by the reset password request.
+          required: true
+          type: string
+        - name: user
+          in: formData
+          description: Unique identifier representing a specific user. Matches _id in user record.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: New password.
+          required: true
+          type: string
+        - name: token
+          in: formData
+          description: The token created by the reset password request.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Unknown
   /user:
     get:
       tags:
@@ -1376,6 +1421,28 @@ definitions:
       email:
         type: string
         description: Email for new user.
+  UserSession:
+    type: object
+    properties:
+      isAuthenticated:
+        type: boolean
+      id:
+        type: string
+        description: Current authenticated user id.
+      tenantId:
+        type: string
+        description: Current authenticated users tenant id.
+      tenantName:
+        type: string
+        description: Current authenticated users tenant name.
+      email:
+        type: string
+      otherLoginLinks:
+        type: string
+      permissions:
+        type: array
+        items:
+          type: string
   Tenant:
     type: object
     properties:
