@@ -63,6 +63,77 @@ paths:
           description: Unauthorised
           schema:
             $ref: '#/definitions/ErrorCode'
+  /loginas:
+    post:
+      tags:
+        - auth
+      summary: Login as
+      description: 'Not sure what this is for.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: formData
+          description: Unique identifier representing a specific user.
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Successful login
+          schema:
+            $ref: '#/definitions/Login'
+        '401':
+          description: Unauthorised
+          schema:
+            $ref: '#/definitions/ErrorCode'
+  /logout:
+    post:
+      tags:
+        - auth
+      summary: Logout
+      description: 'Logout endpoint.'
+      produces:
+        - application/json
+      responses:
+        '204':
+          description: Successful logout
+          schema:
+            $ref: '#/definitions/Success'
+  /register:
+    post:
+      tags:
+        - auth
+      summary: Register
+      description: ''
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: email
+          in: formData
+          description: Unique identifier representing a specific user.
+          required: true
+          type: string
+        - name: password
+          in: formData
+          description: Password.
+          required: true
+          type: string
+        - name: retypePassword
+          in: formData
+          description: Password confirmation.
+          required: true
+          type: string
+      responses:
+        '204':
+          description: New user account details
+          schema:
+            $ref: '#/definitions/Register'
+
+
   /user:
     get:
       tags:
@@ -628,6 +699,144 @@ paths:
           description: An object containing an array of courses
           schema:
             $ref: '#/definitions/MyCourse'
+  /{plugintype}:
+    get:
+      tags:
+        - plugins
+      summary: Return a collection of plugins
+      description: 'Returns an array of objects. Each object describes an installed plugin of type plugintype.'
+      produces:
+        - application/json
+      parameters:
+        - name: plugintype
+          in: path
+          description: The plugin type, either componenttype, extensiontype, menutype or themetype.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array of plugins
+          schema:
+            $ref: '#/definitions/PluginArray'
+  /{plugintype}/{id}:
+    get:
+      tags:
+        - plugins
+      summary: Return a single plugin
+      description: 'Returns an single plugin object defined by id. '
+      produces:
+        - application/json
+      parameters:
+        - name: plugintype
+          in: path
+          description: The plugin type, either componenttype, extensiontype, menutype or themetype.
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An single plugin object
+          schema:
+            $ref: '#/definitions/PluginSingle'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    put:
+      tags:
+        - plugins
+      summary: Update a single plugin
+      description: 'Update a single plugin type definition by id. Currently only used to update _isAvailableInEditor property'
+      produces:
+        - application/json
+      consumes:
+        - application/x-www-form-urlencoded
+      parameters:
+        - name: plugintype
+          in: path
+          description: The plugin type, either componenttype, extensiontype, menutype or themetype.
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be updated.
+          required: true
+          type: string
+        - name: _isAvailableInEditor
+          in: formData
+          description: Sets plugin availability in the course editor.
+          required: true
+          type: boolean
+      responses:
+        '200':
+          description: Success boolean
+          schema:
+            $ref: '#/definitions/Success'
+  /{plugintype}/checkversion/{id}:
+    get:
+      tags:
+        - plugins
+      summary: Plugin version check
+      description: 'Check if a higher version is available for the plugin '
+      produces:
+        - application/json
+      parameters:
+        - name: plugintype
+          in: path
+          description: The plugin type, either componenttype, extensiontype, menutype or themetype.
+          required: true
+          type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be checked.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An single plugin object
+          schema:
+            $ref: '#/definitions/PluginCheck'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /{plugintype}/update:
+    post:
+      tags:
+        - plugins
+      summary: Update plugins
+      description: 'Updates all plugins of type plugintype and with an _id matching a value in targets arrays.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: plugintype
+          in: path
+          description: The plugin type, either componenttype, extensiontype, menutype or themetype.
+          required: true
+          type: string
+        - name: targets
+          in: formData
+          description: An array of plugin id's to be updated.
+          required: true
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/PluginsUpgraded'
+        '404':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+
   /extension/disable/{courseid}:
     post:
       tags:
@@ -770,6 +979,26 @@ paths:
       responses:
         '200':
           description: Streams a image file
+  /upload/contentplugin:
+    post:
+      tags:
+        - plugins
+      summary: Upload plugins
+      description: 'End point for uploading plugins.'
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+       - in: formData
+         name: plugin
+         type: file
+         description: The plugin file to upload.
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
   /output/{plugin}/publish/{id}:
     get:
       tags:
@@ -961,6 +1190,8 @@ paths:
           description: An object containing all tags.
           schema:
             $ref: '#/definitions/Tags'
+
+
 definitions:
   Login:
     type: object
@@ -1136,6 +1367,15 @@ definitions:
       ipAddress:
         type: string
         description: The IP address of the original remote request that used /user/resetpassword endpoint.
+  Register:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: Unique identifier for the new user.
+      email:
+        type: string
+        description: Email for new user.
   Tenant:
     type: object
     properties:
@@ -1519,3 +1759,80 @@ definitions:
         type: string
       _id:
         type: string
+  PluginArray:
+    type: array
+    items:
+      type: object
+      properties:
+        _id:
+          type: string
+        issues:
+          type: string
+        homepage:
+          type: string
+        framework:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        displayName:
+          type: string
+        name:
+          type: string
+        isLocalPackage:
+          type: boolean
+        _isAvailableInEditor:
+          type: boolean
+        _isDeleted:
+          type: boolean
+        globals:
+          type: object
+        properties:
+          type: object
+  PluginSingle:
+    type: object
+    properties:
+      _id:
+        type: string
+      issues:
+        type: string
+      homepage:
+        type: string
+      framework:
+        type: string
+      version:
+        type: string
+      description:
+        type: string
+      displayName:
+        type: string
+      name:
+        type: string
+      isLocalPackage:
+        type: boolean
+      _isAvailableInEditor:
+        type: boolean
+      _isDeleted:
+        type: boolean
+      globals:
+        type: object
+      properties:
+        type: object
+  PluginCheck:
+    type: object
+    properties:
+      success:
+        type: boolean
+      isUpdateable:
+        type: boolean
+  PluginsUpgraded:
+    type: object
+    properties:
+      success:
+        type: boolean
+      upgraded:
+        type: array
+        items:
+          type: string
+    
