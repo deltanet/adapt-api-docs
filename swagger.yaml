@@ -19,7 +19,9 @@ tags:
   - name: tenants
     description: Operations about tenants.
   - name: courses
-    description: Operations about Courses.
+    description: Operations about courses.
+  - name: assets
+    description: Operations about assets.
   - name: output
     description: Output endpoints, e.g preview, publish.
   - name: plugins
@@ -377,27 +379,6 @@ paths:
             $ref: '#/definitions/Success'
         '500':
           description: Error.
-  /userpasswordreset/{token}:
-    get:
-      tags:
-        - users
-      summary: Reset password email endpoint
-      description: 'The endpoint returns for the reset password email. The token is generated on start of reset password process and is time sensitive.'
-      produces:
-        - application/json
-      parameters:
-        - name: token
-          in: path
-          description: A generated string unique to this password reset attempt.
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success response
-          schema:
-            $ref: '#/definitions/PasswordresetToken'
-        '500':
-          description: Error.
   /tenant:
     get:
       tags:
@@ -744,6 +725,215 @@ paths:
           description: An object containing an array of courses
           schema:
             $ref: '#/definitions/MyCourse'
+  /asset/query:
+    get:
+      tags:
+        - assets
+      summary: Return queried assets
+      description: 'Returns an object with all of the assets shared with the authenticated user. Array is empty if no assets are shared.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing an array of assets
+          schema:
+            $ref: '#/definitions/Assets'
+  /asset:
+    post:
+      tags:
+        - assets
+      summary: Upload an asset
+      description: 'End point for uploading an asset file and asset data. See [asset schema](https://github.com/adaptlearning/adapt_authoring/blob/master/lib/dml/schema/system/asset.schema) for full list of fields.'
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: The asset to create.
+          schema:
+            $ref: '#/definitions/Asset'
+      responses:
+        '200':
+          description: An object containing details of the created asset
+          schema:
+            $ref: '#/definitions/AssetCreate'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+
+
+  /asset/{id}:
+    get:
+      tags:
+        - assets
+      summary: Returns a single asset defined by id
+      description: 'Returns an asset object.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing an asset
+          schema:
+            $ref: '#/definitions/Asset'
+    put:
+      tags:
+        - assets
+      summary: Update a specific asset
+      description: 'End point for updating a asset course. See [asset schema](https://github.com/adaptlearning/adapt_authoring/blob/master/lib/dml/schema/system/asset.schema) for full list of fields.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    delete:
+      tags:
+        - assets
+      summary: Delete a specific asset
+      description: 'End point for deleting a specified asset.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /asset/trash/{id}:
+    put:
+      tags:
+        - assets
+      summary: Soft delete a specific asset
+      description: Update the _isDeleted property for an asset so that it is not available in the content asset picker.
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /asset/restore/{id}:
+    put:
+      tags:
+        - assets
+      summary: Restore a specific asset
+      description: Update the _isDeleted property for an asset so that it can be used with the asset picker.
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+
+  /asset/serve/{id}:
+    get:
+      tags:
+        - assets
+      summary: Serves a single asset file defined by id
+      description: 'Returns an asset file.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An an asset file
+  /asset/thumb/{id}:
+    get:
+      tags:
+        - assets
+      summary: Serves a single asset thumbnail file defined by id
+      description: 'Returns an asset thumbnail file.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An an asset thumbnail file
+  /shared/asset/{id}:
+    get:
+      tags:
+        - assets
+      summary: Serves a single shared asset file defined by id
+      description: 'Returns an shared asset file.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An an asset file
+
+
   /{plugintype}:
     get:
       tags:
@@ -1753,6 +1943,111 @@ definitions:
         type: string
       _tenantId:
         type: string
+  Assets:
+    type: array
+    items:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+        metadata:
+          type: object
+          properties:
+            duration:
+              type: integer
+              format: int32
+        assetType:
+          type: string
+        mimeType:
+          type: string
+        thumbnailPath:
+          type: boolean
+        directory:
+          type: string
+        createdBy:
+          type: string
+        repository:
+          type: string
+        path:
+          type: string
+        description:
+          type: string
+        filename:
+          type: string
+        size:
+          type: string
+        title:
+          type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              title:
+                type: string
+        isDirectory:
+          type: boolean
+        _isDeleted:
+          type: boolean
+  Asset:
+    type: object
+    properties:
+      _id:
+        type: string
+      createdAt:
+        type: string
+      metadata:
+        type: object
+        properties:
+          duration:
+            type: integer
+            format: int32
+      assetType:
+        type: string
+      mimeType:
+        type: string
+      thumbnailPath:
+        type: boolean
+      directory:
+        type: string
+      createdBy:
+        type: string
+      repository:
+        type: string
+      path:
+        type: string
+      description:
+        type: string
+      filename:
+        type: string
+      size:
+        type: string
+      title:
+        type: string
+      tags:
+        type: array
+        items:
+          type: object
+          properties:
+            _id:
+              type: string
+            title:
+              type: string
+      isDirectory:
+        type: boolean
+      _isDeleted:
+        type: boolean
+  AssetCreate:
+    type: object
+    properties:
+      success:
+        type: boolean
+      id:
+        type: string
   Download:
     type: object
     properties:
@@ -1902,4 +2197,3 @@ definitions:
         type: array
         items:
           type: string
-    
