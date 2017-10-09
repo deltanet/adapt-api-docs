@@ -20,7 +20,9 @@ tags:
     description: Operations about tenants.
   - name: courses
     description: Operations about courses.
-  - name: assets
+  - name: courses
+    description: Operations about content.
+  - name: content
     description: Operations about assets.
   - name: output
     description: Output endpoints, e.g preview, publish.
@@ -725,6 +727,84 @@ paths:
           description: An object containing an array of courses
           schema:
             $ref: '#/definitions/MyCourse'
+  /content/schema:
+    get:
+      tags:
+        - content
+      summary: Get all content schema
+      description: 'Returns an object with all content and plugin schema.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An object containing all content related schema, varies depending on installed plugins.
+        '500':
+          description: Error.
+  /content/{type}:
+    get:
+      tags:
+        - content
+      summary: Get content type
+      description: 'Returns an array of all content defined by type. Type is expected to be singular.'
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array containing content.
+        '500':
+          description: Error.
+    post:
+      tags:
+        - content
+      summary: Create content
+      description: 'End point for creating content defined by type. '
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          type: string
+        - in: body
+          name: user
+          description: The content to be created.
+      responses:
+        '200':
+          description: An object containing details of the created content. Includes enabled extensions.
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /content/{type}/query:
+    get:
+      tags:
+        - content
+      summary: Get content type - TODO expects response body for query option, this does not conform to API standard.
+      description: 'Returns an array of all content defined by type and filtered by options in request body. Type is expected to be singular.'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An array containing content JSON.
+        '500':
+          description: Error.
   /asset/query:
     get:
       tags:
@@ -763,8 +843,6 @@ paths:
           description: Error.
           schema:
             $ref: '#/definitions/ErrorMessage'
-
-
   /asset/{id}:
     get:
       tags:
@@ -1943,6 +2021,47 @@ definitions:
         type: string
       _tenantId:
         type: string
+  ContentComponent:
+    type: array
+    items:
+      type: object
+      properties:
+        _componentTypeDisplayName:
+          type: string
+        _id:
+          type: string
+        updatedAt:
+          type: string
+        createdAt:
+          type: string
+        createdBy:
+          type: string
+        _layout:
+          type: string
+        _componentType:
+          type: string
+        _type:
+          type: string
+        _parentId:
+          type: string
+        _courseId:
+          type: string
+        body:
+          type: string
+        displayTitle:
+          type: string
+        title:
+          type: string
+        _isAvailable:
+          type: boolean
+        _isOptional:
+          type: boolean
+        _classes:
+          type: string
+        _component:
+          type: string
+        _isDeleted:
+          type: boolean
   Assets:
     type: array
     items:
