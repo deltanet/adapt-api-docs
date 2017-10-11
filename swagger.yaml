@@ -14,6 +14,8 @@ basePath: /api/
 tags:
   - name: auth
     description: Local authentication. The standard basic authentication plugin.
+  - name: roles
+    description: Operations about roles.
   - name: users
     description: Operations about users.
   - name: tenants
@@ -183,6 +185,179 @@ paths:
       responses:
         '200':
           description: Unknown
+  /role/installdefault:
+    post:
+      tags:
+        - roles
+      summary: Default roles - TODO check that this works
+      description: 'Install default roles to the current tenant'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error
+  /role/{id}/assign/{userid}:
+    post:
+      tags:
+        - roles
+      summary: Assign role
+      description: 'Assigns a role to a user'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          type: string
+        - name: userid
+          in: path
+          description: The user id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error
+  /role/{id}/unassign/{userid}:
+    post:
+      tags:
+        - roles
+      summary: Unassign role
+      description: 'Unassigns a role to a single user'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          type: string
+        - name: userid
+          in: path
+          description: The user id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error
+  /role:
+    get:
+      tags:
+        - roles
+      summary: Get all roles
+      description: 'End point for enumerating roles.'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: An array of roles
+          schema:
+            $ref: '#/definitions/Role'
+        '500':
+          description: Error.
+    post:
+      tags:
+        - roles
+      summary: Create role - TODO - change to requestBody in swagger v3.0 using ref  RolePostRequestBody
+      description: 'Creates a role. Role data is JSON contained in body request.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: role
+          in: formData
+          description: Role data.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Roles'
+        '500':
+          description: Error
+  /role/{id}:
+    get:
+      tags:
+        - roles
+      summary: Get a specific role
+      description: 'End point for getting results for a specified role.'
+      produces:
+        - application/json
+        - text/plain; charset=utf-8
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a single role
+          schema:
+            $ref: '#/definitions/Role'
+        '500':
+          description: Error.
+    put:
+      tags:
+        - roles
+      summary: Update a specific role TODO - change to requestBody in swagger v3.0 using ref  RolePostRequestBody
+      description: 'End point for updating a specified role.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The user id.
+          required: true
+          type: string
+        - name: role
+          in: formData
+          description: role data.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing a single role
+          schema:
+            $ref: '#/definitions/Role'
+        '500':
+          description: Error.
+    delete:
+      tags:
+        - roles
+      summary: Destroy a specific role
+      description: 'End point for destroy action on a specified role.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
   /user:
     get:
       tags:
@@ -262,7 +437,7 @@ paths:
     put:
       tags:
         - users
-      summary: Get a specific user
+      summary: Update a specific user
       description: 'End point for updating a specified user.'
       consumes:
         - application/x-www-form-urlencoded
@@ -894,7 +1069,7 @@ paths:
       summary: Switch siblings. TODO - change to requestBody in swagger v3.0 using ref  ContentNewLayout
       description: 'Switch siblings of content type. Content siblings defined by switchid and id. Typically used to swap component position'
       consumes:
-        - application/json
+        - application/x-www-form-urlencoded
       produces:
         - application/json
       parameters:
@@ -913,7 +1088,7 @@ paths:
           description: The type of content to be updates.
           required: true
           type: string
-        - in: data
+        - in: formData
           name: switch
           description: The operation options.
           type: string
@@ -2522,3 +2697,81 @@ definitions:
         type: array
         items:
           type: string
+  Roles:
+    type: array
+    items:
+      type: object
+      properties:
+        _id:
+          type: string
+        _isDeleted:
+          type: boolean
+        statement:
+          type: array
+          items:
+            type: object
+            properties:
+              effect:
+                type: string
+              action:
+                type: array
+                items:
+                  type: string
+              resource:
+                type: string
+              condition:
+                type: object
+        version:
+          type: string
+        name:
+          type: string
+  Role:
+    type: object
+    properties:
+      _id:
+        type: string
+      _isDeleted:
+        type: boolean
+      statement:
+        type: array
+        items:
+          type: object
+          properties:
+            effect:
+              type: string
+            action:
+              type: array
+              items:
+                type: string
+            resource:
+              type: string
+            condition:
+              type: object
+      version:
+        type: string
+      name:
+        type: string
+  RolePostRequestBody:
+    type: object
+    properties:
+      _isDeleted:
+        type: boolean
+      statement:
+        type: array
+        items:
+          type: object
+          properties:
+            effect:
+              type: string
+            action:
+              type: array
+              items:
+                type: string
+            resource:
+              type: string
+            condition:
+              type: object
+      version:
+        type: string
+      name:
+        type: string
