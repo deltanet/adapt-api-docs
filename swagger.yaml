@@ -4,7 +4,7 @@ info:
     This is the API documentation for the Adapt authoring tool. More information
     on the Adapt authoring tool can be found.
     [here](https://github.com/adaptlearning/adapt_authoring/)
-  version: "0.0.2"
+  version: "0.0.3"
   title: Adapt Authoring
   license:
     name: GPL-3.0
