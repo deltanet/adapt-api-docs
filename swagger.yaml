@@ -20,9 +20,9 @@ tags:
     description: Operations about tenants.
   - name: courses
     description: Operations about courses.
-  - name: courses
-    description: Operations about content.
   - name: content
+    description: Operations about content.
+  - name: assets
     description: Operations about assets.
   - name: output
     description: Output endpoints, e.g preview, publish.
@@ -765,7 +765,7 @@ paths:
       summary: Create content
       description: 'End point for creating content defined by type. '
       consumes:
-        - application/json
+        - application/x-www-form-urlencoded
       produces:
         - application/json
       parameters:
@@ -774,9 +774,10 @@ paths:
           description: The type of content to be returned.
           required: true
           type: string
-        - in: body
+        - in: formData
           name: user
           description: The content to be created.
+          type: string
       responses:
         '200':
           description: An object containing details of the created content. Includes enabled extensions.
@@ -805,6 +806,172 @@ paths:
           description: An array containing content JSON.
         '500':
           description: Error.
+  /content/{type}/{id}:
+    get:
+      tags:
+        - content
+      summary: Get content type defined by type and id.
+      description: 'Returns an object for specified content type and id.'
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: An object containing content JSON.
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    put:
+      tags:
+        - content
+      summary: Update content type defined by type and id.
+      description: 'Updates an object for specified content type and id.'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The content id to be updated.
+          required: true
+          type: string
+        - name: type
+          in: path
+          description: The type of content to be updates.
+          required: true
+          type: string
+        - in: formData
+          name: content
+          description: The content to be updated. this would be a JSON object with the new values.
+          type: string
+      responses:
+        '200':
+          description: Success response.
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+    delete:
+      tags:
+        - content
+      summary: Destroy content type defined by type and id.
+      description: 'Destroys content for specified content type and id.'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The content id.
+          required: true
+          type: string
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Success response.
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /content/{type}/switch/{id}/{switchid}:
+    put:
+      tags:
+        - content
+      summary: Switch siblings. TODO - change to requestBody in swagger v3.0 using ref  ContentNewLayout
+      description: 'Switch siblings of content type. Content siblings defined by switchid and id. Typically used to swap component position'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: The id to be updated.
+          required: true
+          type: string
+        - name: switchid
+          in: path
+          description: The sibling id to be updated.
+          required: true
+          type: string
+        - name: type
+          in: path
+          description: The type of content to be updates.
+          required: true
+          type: string
+        - in: data
+          name: switch
+          description: The operation options.
+          type: string
+      responses:
+        '200':
+          description: Success response.
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /content/clipboard/copy:
+    post:
+      tags:
+        - content
+      summary: Copy end point - TODO use requestBody in swagger v3 using the ClipboardCopyData schema
+      description: 'APIs for server-side copy'
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: copy options
+          description: The id and options of the object to copy to clipboard.
+          type: string
+      responses:
+        '200':
+          description: An object containing the copied content clipboard id value.
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
+  /content/clipboard/paste:
+    post:
+      tags:
+        - content
+      summary: Paste end point - TODO use requestBody in swagger v3 using the ClipboardPasteData schema
+      description: 'APIs for server-side paste '
+      consumes:
+        - application/x-www-form-urlencoded
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: paste options
+          description: The id and options of the object to paste.
+          type: string
+      responses:
+        '200':
+          description: Success object.
+          schema:
+            $ref: '#/definitions/Success'
+        '500':
+          description: Error.
+          schema:
+            $ref: '#/definitions/ErrorMessage'
   /asset/query:
     get:
       tags:
@@ -2062,6 +2229,45 @@ definitions:
           type: string
         _isDeleted:
           type: boolean
+  ContentNewLayout:
+    type: object
+    properties:
+      newLayout:
+        type: object
+        properties:
+          _layout:
+            type: string
+          _parentId:
+            type: string
+      siblingLayout:
+        type: object
+        properties:
+          _layout:
+            type: string
+          _parentId:
+            type: string
+  ClipboardCopyData:
+    type: object
+    properties:
+      objectId:
+        type: string
+      courseId:
+        type: string
+      referenceType:
+        type: string
+  ClipboardPasteData:
+    type: object
+    properties:
+      id:
+        type: string
+      parentId:
+        type: string
+      layout:
+        type: string
+      sortOrder:
+        type: string
+      courseId:
+        type: string
   Assets:
     type: array
     items:
