@@ -1,196 +1,503 @@
-swagger: '2.0'
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:5000/api/'
 info:
   description: >-
     This is the API documentation for the Adapt authoring tool. More information
     on the Adapt authoring tool can be found.
     [here](https://github.com/adaptlearning/adapt_authoring/)
-  version: "0.0.2"
+  version: "0.0.3-oas3"
   title: Adapt Authoring
   license:
     name: GPL-3.0
     url: 'https://github.com/adaptlearning/adapt_authoring/blob/master/LICENSE'
-host: 'localhost:5000'
-basePath: /api/
 tags:
   - name: auth
     description: Local authentication. The standard basic authentication plugin.
+  - name: roles
+    description: Operations about roles.
   - name: users
     description: Operations about users.
   - name: tenants
     description: Operations about tenants.
   - name: courses
-    description: Operations about Courses.
+    description: Operations about courses.
+  - name: content
+    description: Operations about content.
+  - name: assets
+    description: Operations about assets.
   - name: output
-    description: Output endpoints, e.g preview, publish.
-schemes:
-  - http
+    description: 'Output endpoints, e.g preview, publish.'
+  - name: plugins
+    description: Operations about plugins.
+  - name: language
+    description: End point for localisation.
+  - name: configuration
+    description: End point for getting configuration data.
+  - name: tags
+    description: End point for getting tags.
 paths:
   /login:
     post:
       tags:
         - auth
       summary: Login
-      description: 'End point for basic authentication'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      parameters:
-        - name: email
-          in: formData
-          description: Unique identifier representing a specific user.
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: Password string.
-          required: true
-          type: string
+      description: End point for basic authentication
       responses:
-        '204':
+        '200':
           description: Successful login
-          schema:
-            $ref: '#/definitions/Login'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
         '401':
           description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: Unique identifier representing a specific user.
+                  type: string
+                password:
+                  description: Password string.
+                  type: string
+              required:
+                - email
+  /loginas:
+    post:
+      tags:
+        - auth
+      summary: Login as
+      description: Not sure what this is for.
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Login'
+        '401':
+          description: Unauthorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: Unique identifier representing a specific user.
+                  type: string
+              required:
+                - email
+  /logout:
+    post:
+      tags:
+        - auth
+      summary: Logout
+      description: Logout endpoint.
+      responses:
+        '200':
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+  /register:
+    post:
+      tags:
+        - auth
+      summary: Register
+      description: Not sure if this is used or not...
+      responses:
+        '200':
+          description: New user account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Register'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: Unique identifier representing a specific user.
+                  type: string
+                password:
+                  description: Password.
+                  type: string
+                retypePassword:
+                  description: Password confirmation.
+                  type: string
+              required:
+                - email
+  /authcheck:
+    get:
+      tags:
+        - auth
+      summary: Get authenticated session details
+      description: >-
+        Returns an objest containing values for the currently authenticated
+        session.
+      responses:
+        '200':
+          description: Current authenticated session values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSession'
+  /userpasswordreset/{token}:
+    post:
+      tags:
+        - auth
+      summary: Reset password
+      description: >-
+        Allows the user to change their password after receiving a reset
+        password email. TODO - check if token needs to be passed in the path and
+        body.
+      parameters:
+        - name: token
+          in: path
+          description: The token created by the reset password request.
+          required: true
           schema:
-            $ref: '#/definitions/ErrorCode'
+            type: string
+      responses:
+        '200':
+          description: Unknown
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  description: >-
+                    Unique identifier representing a specific user. Matches _id
+                    in user record.
+                  type: string
+                password:
+                  description: New password.
+                  type: string
+                token:
+                  description: The token created by the reset password request.
+                  type: string
+              required:
+                - user
+  /role/installdefault:
+    post:
+      tags:
+        - roles
+      summary: Default roles - TODO check that this works
+      description: Install default roles to the current tenant
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error
+  /role/{id}/assign/{userid}:
+    post:
+      tags:
+        - roles
+      summary: Assign role
+      description: Assigns a role to a user
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          schema:
+            type: string
+        - name: userid
+          in: path
+          description: The user id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
+        '500':
+          description: Error
+  '/role/{id}/unassign/{userid}':
+    post:
+      tags:
+        - roles
+      summary: Unassign role
+      description: Unassigns a role to a single user
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          schema:
+            type: string
+        - name: userid
+          in: path
+          description: The user id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
+        '500':
+          description: Error
+  /role:
+    get:
+      tags:
+        - roles
+      summary: Get all roles
+      description: End point for enumerating roles.
+      responses:
+        '200':
+          description: An array of roles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Roles'
+        '500':
+          description: Error.
+    post:
+      tags:
+        - roles
+      summary: Create role
+      description: Creates a role. Role data is JSON contained in body request.
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Roles'
+        '500':
+          description: Error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolePostRequestBody'
+  '/role/{id}':
+    get:
+      tags:
+        - roles
+      summary: Get a specific role
+      description: End point for getting results for a specified role.
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a single role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+            text/plain; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
+        '500':
+          description: Error.
+    put:
+      tags:
+        - roles
+      summary: Update a specific role
+      description: End point for updating a specified role.
+      parameters:
+        - name: id
+          in: path
+          description: The user id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a single role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
+        '500':
+          description: Error.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolePostRequestBody'
+    delete:
+      tags:
+        - roles
+      summary: Destroy a specific role
+      description: End point for destroy action on a specified role.
+      parameters:
+        - name: id
+          in: path
+          description: The role id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
+        '500':
+          description: Error.
   /user:
     get:
       tags:
         - users
       summary: Get users
-      description: 'Returns an array of all users. Get requests for /user/{id} with no match will return a status code of 200 and false string in the body.'
-      produces:
-        - application/json
+      description: >-
+        Returns an array of all users. Get requests for /user/{id} with no match
+        will return a status code of 200 and false string in the body.
       responses:
         '200':
           description: An array of user details
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/User'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
         '500':
           description: Error.
     post:
       tags:
         - users
       summary: Create user
-      description: 'The create user endpoint is used to create a single user. A user must have an email, password and be asigned to at least one tenant and role. If a duplicate email is found an error will be returned. The 500 error actually returns HTML, it would be more useful if this was JSON.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      parameters:
-        - name: email
-          in: formData
-          description: users email address.
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: Password string.
-          required: true
-          type: string
-        - name: _tenantId
-          in: formData
-          description: Collection id for tenant that the user will be assigned to.
-          required: true
-          type: string
-        - name: role
-          in: formData
-          description: Collection id for role that the user will be assigned.
-          required: true
-          type: string
+      description: >-
+        The create user endpoint is used to create a single user. A user must
+        have an email, password and be asigned to at least one tenant and role.
+        If a duplicate email is found an error will be returned. The 500 error
+        actually returns HTML, it would be more useful if this was JSON.
       responses:
         '200':
           description: Successfuly created a user
-          schema:
-            $ref: '#/definitions/Usercreate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usercreate'
         '500':
           description: Error
-  /user/{id}:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postUser'
+  '/user/{id}':
     get:
       tags:
         - users
       summary: Get a specific user
-      description: 'End point for getting results for a specified user.'
-      produces:
-        - application/json
-        - text/plain; charset=utf-8
+      description: End point for getting results for a specified user.
       parameters:
         - name: id
           in: path
           description: The user id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing a single user
-          schema:
-            $ref: '#/definitions/User'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Not found
         '500':
           description: Error.
     put:
       tags:
         - users
-      summary: Get a specific user
-      description: 'End point for updating a specified user.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
+      summary: Update a specific user
+      description: End point for updating a specified user.
       parameters:
         - name: id
           in: path
           description: The user id.
           required: true
-          type: string
-        - name: email
-          in: formData
-          description: users email address.
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: Password string.
-          required: true
-          type: string
-        - name: _tenantId
-          in: formData
-          description: Collection id for tenant that the user will be assigned to.
-          required: true
-          type: string
-        - name: role
-          in: formData
-          description: Collection id for role that the user will be assigned.
-          required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing a single user
-          schema:
-            $ref: '#/definitions/Usercreate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usercreate'
+        '404':
+          description: Not found
         '500':
           description: Error.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postUser'
     delete:
       tags:
         - users
       summary: Destroy a specific user
-      description: 'End point for destroy action on a specified user.'
-      produces:
-        - application/json
+      description: End point for destroy action on a specified user.
       parameters:
         - name: id
           in: path
           description: The user id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: Success response
-          schema:
-            $ref: '#/definitions/Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
         '500':
           description: Error.
   /user/me:
@@ -198,14 +505,16 @@ paths:
       tags:
         - users
       summary: User profile
-      description: 'The User Profile endpoint returns information about the Uber user that has authorized with the application.'
-      produces:
-        - application/json
+      description: >-
+        The User Profile endpoint returns information about the Uber user that
+        has authorized with the application.
       responses:
         '200':
           description: An object containing a single user
-          schema:
-            $ref: '#/definitions/Me'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
         '500':
           description: Error.
   /user/resetpassword:
@@ -213,65 +522,49 @@ paths:
       tags:
         - users
       summary: Reset password
-      description: 'The reset password endpoint expects an email and new password in the request body. It updates the password for the user record with matching email and attempts to send a confirmation email.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      parameters:
-        - name: email
-          in: formData
-          description: Users email address.
-          required: true
-          type: string
-        - name: password
-          in: formData
-          description: Password string.
-          required: true
-          type: string
+      description: >-
+        The reset password endpoint expects an email and new password in the
+        request body. It updates the password for the user record with matching
+        email and attempts to send a confirmation email.
       responses:
         '200':
           description: Success response
-          schema:
-            $ref: '#/definitions/Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
         '500':
           description: Error.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: Users email address.
+                  type: string
+                password:
+                  description: Password string.
+                  type: string
+              required:
+                - email
   /user/bulkaction:
     put:
       tags:
         - users
       summary: Soft removel of users
-      description: 'The bulkaction endpoint expects a boolean value for delete or restore in the request body. It sets the value of _isDeleted on a user record. This endpoint need further clarification in how or if it is used.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
+      description: >-
+        The bulkaction endpoint expects a boolean value for delete or restore in
+        the request body. It sets the value of _isDeleted on a user record. This
+        endpoint need further clarification in how or if it is used.
       responses:
         '200':
           description: Success response
-          schema:
-            $ref: '#/definitions/Success'
-        '500':
-          description: Error.
-  /userpasswordreset/{token}:
-    get:
-      tags:
-        - users
-      summary: Reset password email endpoint
-      description: 'The endpoint returns for the reset password email. The token is generated on start of reset password process and is time sensitive.'
-      produces:
-        - application/json
-      parameters:
-        - name: token
-          in: path
-          description: A generated string unique to this password reset attempt.
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Success response
-          schema:
-            $ref: '#/definitions/PasswordresetToken'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
         '500':
           description: Error.
   /tenant:
@@ -279,138 +572,162 @@ paths:
       tags:
         - tenants
       summary: Get all tenants
-      description: 'Returns an array of all tenants.'
-      produces:
-        - application/json
+      description: Returns an array of all tenants.
       responses:
         '200':
           description: An array of tenant details
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Tenant'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tenant'
         '500':
           description: Error.
     post:
       tags:
         - tenants
       summary: Create a single tenant
-      description: 'End point for creating a tenant record.'
-      produces:
-        - application/json
-      consumes:
-        - application/x-www-form-urlencoded
-      parameters:
-        - name: name
-          in: formData
-          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
-          required: true
-          type: string
-        - name: displayName
-          in: formData
-          description: Tenant name displayed in interface.
-          required: true
-          type: string
-        - name: isMaster
-          in: formData
-          description: Indicates if this tenant should be a master tenant.
-          required: true
-          type: boolean
+      description: End point for creating a tenant record.
       responses:
         '200':
           description: An single tenant object
-          schema:
-            $ref: '#/definitions/Tenant'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
         '500':
           description: Error.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: >-
+                    Tenant name to be used by application. Master tenants will
+                    have a database created with name as the dbname.
+                  type: string
+                displayName:
+                  description: Tenant name displayed in interface.
+                  type: string
+                isMaster:
+                  description: Indicates if this tenant should be a master tenant.
+                  type: boolean
+              required:
+                - name
   /tenant/query:
     get:
       tags:
         - tenants
       summary: Get all tenants
-      description: 'Query tenants for lazy loading. Can accept query options in body or query parameters.'
-      produces:
-        - application/json
+      description: >-
+        Query tenants for lazy loading. Can accept query options in body or
+        query parameters.
       responses:
         '200':
           description: An array of tenant details
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Tenant'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tenant'
         '500':
           description: Error.
-  /tenant/{id}:
+  '/tenant/{id}':
     get:
       tags:
         - tenants
       summary: Get a single tenant
-      description: 'End point for returning details of a specified tenant. Get requests for /tenant/{id} with no match will return a status code of 200 and false string in the body.'
-      produces:
-        - application/json
+      description: >-
+        End point for returning details of a specified tenant. Get requests for
+        /tenant/{id} with no match will return a status code of 200 and false
+        string in the body.
       parameters:
         - name: id
           in: path
           description: The tenant id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An single tenant object
-          schema:
-            $ref: '#/definitions/Tenant'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '404':
+          description: Not found
         '500':
           description: Error.
     put:
       tags:
         - tenants
       summary: Update a tenant
-      description: 'End point for updating a tenant record. Put request with no matching record will return 500 status code.'
-      produces:
-        - application/json
-      consumes:
-        - application/x-www-form-urlencoded
+      description: >-
+        End point for updating a tenant record. Put request with no matching
+        record will return 500 status code.
       parameters:
         - name: id
           in: path
           description: The tenant id.
           required: true
-          type: string
-        - name: name
-          in: formData
-          description: Tenant name to be used by application. Master tenants will have a database created with name as the dbname.
-          required: true
-          type: string
-        - name: displayName
-          in: formData
-          description: Tenant name displayed in interface.
-          required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An single tenant object
-          schema:
-            $ref: '#/definitions/Tenant'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '404':
+          description: Not found
         '500':
           description: Error.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: >-
+                    Tenant name to be used by application. Master tenants will
+                    have a database created with name as the dbname.
+                  type: string
+                displayName:
+                  description: Tenant name displayed in interface.
+                  type: string
+              required:
+                - name
     delete:
       tags:
         - tenants
       summary: Delete (softly) a tenant
-      description: 'End point for deleting a tenant. Records are soft deleted, i.e "_isDeleted" : true. Delete requests for /tenant/{id} with no match will return a status code of 500.'
-      produces:
-        - application/json
+      description: >-
+        End point for deleting a tenant. Records are soft deleted, i.e
+        "_isDeleted" : true. Delete requests for /tenant/{id} with no match will
+        return a status code of 500.
       parameters:
         - name: id
           in: path
           description: The tenant id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An single tenant object
-          schema:
-            $ref: '#/definitions/TenantDelete'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantDelete'
+        '404':
+          description: Not found
         '500':
           description: Error.
   /tenant/duplicatecourse/{id}/{userId}:
@@ -419,331 +736,1468 @@ paths:
         - tenants
       summary: Copy a course and all assets to a tenant
       description: 'End point for copying a course and all assets to a tenant. The tenant userId should ideally have tenant admin role.'
-      produces:
-        - application/json
       parameters:
         - name: id
           in: path
-          description: The course id.
+          description: The tenant id.
           required: true
-          type: string
+          schema:
+            type: string
         - name: userId
           in: path
           description: The tenant user id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
-          description: An object containing the new course id and success status
-          schema:
-            $ref: '#/definitions/DuplicateCourse'
+          description: An single tenant object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateCourse'
         '500':
           description: Error.
-          schema:
-            $ref: '#/definitions/ErrorMessage'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
   /content/course:
     get:
       tags:
         - courses
       summary: Get courses
-      description: 'Returns an array of all courses.'
-      produces:
-        - application/json
+      description: Returns an array of all courses.
       responses:
         '200':
           description: An array of course details
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Course'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
         '500':
           description: Error.
     post:
       tags:
         - courses
       summary: Create a course
-      description: 'End point for creating a course. See [course schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema) for full list of fields.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
-      parameters:
-        - name: title
-          in: formData
-          description: Title shown in the authoring tool.
-          required: true
-          type: string
-        - name: displayName
-          in: formData
-          description: Display title.
-          required: false
-          type: string
-        - name: body
-          in: formData
-          description: Course body text.
-          required: false
-          type: string
-        - name: _isShared
-          in: formData
-          description: Set if course is private or shared between tenant users.
-          required: true
-          type: boolean
-        - name: createdBy
-          in: formData
-          description: User Id, assigns ownership of the course.
-          required: true
-          type: string
+      description: >-
+        End point for creating a course. See [course
+        schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema)
+        for full list of fields.
       responses:
         '200':
           description: An object containing details of the created course
-          schema:
-            $ref: '#/definitions/CourseCreate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseCreate'
         '500':
           description: Error.
-          schema:
-            $ref: '#/definitions/ErrorMessage'
-  /content/course/{id}:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postContentCourse'
+  '/content/course/{id}':
     get:
       tags:
         - courses
       summary: Get a specific course
-      description: 'End point for getting results for a specified course.'
-      produces:
-        - application/json
-        - text/plain; charset=utf-8
+      description: End point for getting results for a specified course.
       parameters:
         - name: id
           in: path
           description: The course id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing a single user
-          schema:
-            $ref: '#/definitions/Course'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+            text/plain; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '500':
           description: Error.
-          schema:
-            $ref: '#/definitions/ErrorMessage'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
     put:
       tags:
         - courses
       summary: Update a specific course
-      description: 'End point for updating a specified course. See [course schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema) for full list of fields.'
-      consumes:
-        - application/x-www-form-urlencoded
-      produces:
-        - application/json
+      description: >-
+        End point for updating a specified course. See [course
+        schema](https://github.com/adaptlearning/adapt_authoring/blob/master/plugins/content/course/model.schema)
+        for full list of fields.
       parameters:
         - name: id
           in: path
           description: The course id.
           required: true
-          type: string
-        - name: title
-          in: formData
-          description: Title shown in the authoring tool.
-          required: true
-          type: string
-        - name: displayName
-          in: formData
-          description: Display title.
-          required: false
-          type: string
-        - name: body
-          in: formData
-          description: Course body text.
-          required: false
-          type: string
-        - name: _isShared
-          in: formData
-          description: Set if course is private or shared between tenant users.
-          required: true
-          type: boolean
-        - name: createdBy
-          in: formData
-          description: User Id, assigns ownership of the course.
-          required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing a success boolean
-          schema:
-            $ref: '#/definitions/Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
         '500':
           description: Error.
-          schema:
-            $ref: '#/definitions/ErrorMessage'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postContentCourse'
     delete:
       tags:
         - courses
       summary: Delete a specific course
-      description: 'End point for deleting a specified course.'
-      produces:
-        - application/json
-        - text/plain; charset=utf-8
+      description: End point for deleting a specified course.
       parameters:
         - name: id
           in: path
           description: The course id.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing a success boolean
-          schema:
-            $ref: '#/definitions/Success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+            text/plain; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/Success'
         '500':
           description: Error.
-          schema:
-            $ref: '#/definitions/ErrorMessage'
-  /content/duplicatecourse/{id}:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+            text/plain; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/duplicatecourse/{id}':
     get:
       tags:
         - courses
       summary: Duplicate a course
-      description: 'Duplicates the course matching the path id. Returns an object with the new course id.'
-      produces:
-        - application/json
-        - text/plain; charset=utf-8
+      description: >-
+        Duplicates the course matching the path id. Returns an object with the
+        new course id.
       parameters:
         - name: id
           in: path
           description: The id of the course to be duplicated.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
           description: An object containing the new course id and success status
-          schema:
-            $ref: '#/definitions/DuplicateCourse'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateCourse'
+            text/plain; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/DuplicateCourse'
         '500':
           description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not found.
+  /my/course:
+    get:
+      tags:
+        - courses
+      summary: Return my courses
+      description: >-
+        Returns an object with all of the courses owned by the authenticated
+        user. Array is empty if user does not own any courses
+      responses:
+        '200':
+          description: An object containing an array of courses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyCourse'
+  /shared/course:
+    get:
+      tags:
+        - courses
+      summary: Return shared courses
+      description: >-
+        Returns an object with all of the courses shared with the authenticated
+        user. Array is empty if no courses are shared.
+      responses:
+        '200':
+          description: An object containing an array of courses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyCourse'
+  /content/schema:
+    get:
+      tags:
+        - content
+      summary: Get all content schema
+      description: Returns an object with all content and plugin schema.
+      responses:
+        '200':
+          description: >-
+            An object containing all content related schema, varies depending on
+            installed plugins.
+        '500':
+          description: Error.
+  '/content/{type}':
+    get:
+      tags:
+        - content
+      summary: Get content type
+      description: >-
+        Returns an array of all content defined by type. Type is expected to be
+        singular.
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
           schema:
-            $ref: '#/definitions/ErrorMessage'
-  /output/{plugin}/publish/{id}:
+            type: string
+      responses:
+        '200':
+          description: An array containing content.
+        '500':
+          description: Error.
+    post:
+      tags:
+        - content
+      summary: Create content
+      description: 'End point for creating content defined by type. '
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: >-
+            An object containing details of the created content. Includes
+            enabled extensions.
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  description: The content to be created.
+                  type: string
+  '/content/{type}/query':
+    get:
+      tags:
+        - content
+      summary: >-
+        Get content type - TODO expects response body for query option, this
+        does not conform to API standard.
+      description: >-
+        Returns an array of all content defined by type and filtered by options
+        in request body. Type is expected to be singular.
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An array containing content JSON.
+        '500':
+          description: Error.
+  '/content/{type}/{id}':
+    get:
+      tags:
+        - content
+      summary: Get content type defined by type and id.
+      description: Returns an object for specified content type and id.
+      parameters:
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing content JSON.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    put:
+      tags:
+        - content
+      summary: Update content type defined by type and id.
+      description: Updates an object for specified content type and id.
+      parameters:
+        - name: id
+          in: path
+          description: The content id to be updated.
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: The type of content to be updates.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  description: >-
+                    The content to be updated. this would be a JSON object with
+                    the new values.
+                  type: string
+    delete:
+      tags:
+        - content
+      summary: Destroy content type defined by type and id.
+      description: Destroys content for specified content type and id.
+      parameters:
+        - name: id
+          in: path
+          description: The content id.
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: The type of content to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/content/{type}/switch/{id}/{switchid}':
+    put:
+      tags:
+        - content
+      summary: >-
+        Switch siblings. TODO - change to requestBody in swagger v3.0 using ref
+        ContentNewLayout
+      description: >-
+        Switch siblings of content type. Content siblings defined by switchid
+        and id. Typically used to swap component position
+      parameters:
+        - name: id
+          in: path
+          description: The id to be updated.
+          required: true
+          schema:
+            type: string
+        - name: switchid
+          in: path
+          description: The sibling id to be updated.
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          description: The type of content to be updates.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                switch:
+                  description: The operation options.
+                  type: string
+  /content/clipboard/copy:
+    post:
+      tags:
+        - content
+      summary: >-
+        Copy end point - TODO use requestBody in swagger v3 using the
+        ClipboardCopyData schema
+      description: APIs for server-side copy
+      responses:
+        '200':
+          description: An object containing the copied content clipboard id value.
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                copy options:
+                  description: The id and options of the object to copy to clipboard.
+                  type: string
+  /content/clipboard/paste:
+    post:
+      tags:
+        - content
+      summary: >-
+        Paste end point - TODO use requestBody in swagger v3 using the
+        ClipboardPasteData schema
+      description: 'APIs for server-side paste '
+      responses:
+        '200':
+          description: Success object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paste options:
+                  description: The id and options of the object to paste.
+                  type: string
+  /asset/query:
+    get:
+      tags:
+        - assets
+      summary: Return queried assets
+      description: >-
+        Returns an object with all of the assets shared with the authenticated
+        user. Array is empty if no assets are shared.
+      responses:
+        '200':
+          description: An object containing an array of assets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assets'
+  /asset:
+    post:
+      tags:
+        - assets
+      summary: Upload an asset
+      description: >-
+        End point for uploading an asset file and asset data. See [asset
+        schema](https://github.com/adaptlearning/adapt_authoring/blob/master/lib/dml/schema/system/asset.schema)
+        for full list of fields.
+      responses:
+        '200':
+          description: An object containing details of the created asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetCreate'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Asset'
+        description: The asset to create.
+  '/asset/{id}':
+    get:
+      tags:
+        - assets
+      summary: Returns a single asset defined by id
+      description: Returns an asset object.
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing an asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    put:
+      tags:
+        - assets
+      summary: Update a specific asset
+      description: >-
+        End point for updating a asset course. See [asset
+        schema](https://github.com/adaptlearning/adapt_authoring/blob/master/lib/dml/schema/system/asset.schema)
+        for full list of fields.
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+    delete:
+      tags:
+        - assets
+      summary: Delete a specific asset
+      description: End point for deleting a specified asset.
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/asset/trash/{id}':
+    put:
+      tags:
+        - assets
+      summary: Soft delete a specific asset
+      description: >-
+        Update the _isDeleted property for an asset so that it is not available
+        in the content asset picker.
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/asset/restore/{id}':
+    put:
+      tags:
+        - assets
+      summary: Restore a specific asset
+      description: >-
+        Update the _isDeleted property for an asset so that it can be used with
+        the asset picker.
+      parameters:
+        - name: id
+          in: path
+          description: The asset id.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '500':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/asset/serve/{id}':
+    get:
+      tags:
+        - assets
+      summary: Serves a single asset file defined by id
+      description: Returns an asset file.
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An an asset file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/asset/thumb/{id}':
+    get:
+      tags:
+        - assets
+      summary: Serves a single asset thumbnail file defined by id
+      description: Returns an asset thumbnail file.
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An an asset thumbnail file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/shared/asset/{id}':
+    get:
+      tags:
+        - assets
+      summary: Serves a single shared asset file defined by id
+      description: Returns an shared asset file.
+      parameters:
+        - name: id
+          in: path
+          description: The id of the asset to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An an asset file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/{plugintype}':
+    get:
+      tags:
+        - plugins
+      summary: Return a collection of plugins
+      description: >-
+        Returns an array of objects. Each object describes an installed plugin
+        of type plugintype.
+      parameters:
+        - name: plugintype
+          in: path
+          description: >-
+            The plugin type, either componenttype, extensiontype, menutype or
+            themetype.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An array of plugins
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginArray'
+  '/{plugintype}/{id}':
+    get:
+      tags:
+        - plugins
+      summary: Return a single plugin
+      description: 'Returns an single plugin object defined by id. '
+      parameters:
+        - name: plugintype
+          in: path
+          description: >-
+            The plugin type, either componenttype, extensiontype, menutype or
+            themetype.
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be returned.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An single plugin object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginSingle'
+        '404':
+          description: Not found. Returns HTML.
+    put:
+      tags:
+        - plugins
+      summary: Update a single plugin
+      description: >-
+        Update a single plugin type definition by id. Currently only used to
+        update _isAvailableInEditor property
+      parameters:
+        - name: plugintype
+          in: path
+          description: >-
+            The plugin type, either componenttype, extensiontype, menutype or
+            themetype.
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be updated.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found. Returns HTML.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _isAvailableInEditor:
+                  description: Sets plugin availability in the course editor.
+                  type: boolean
+              required:
+                - _isAvailableInEditor
+  '/{plugintype}/checkversion/{id}':
+    get:
+      tags:
+        - plugins
+      summary: Plugin version check
+      description: 'Check if a higher version is available for the plugin '
+      parameters:
+        - name: plugintype
+          in: path
+          description: >-
+            The plugin type, either componenttype, extensiontype, menutype or
+            themetype.
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: The id of the plugin to be checked.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An single plugin object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginCheck'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/{plugintype}/update':
+    post:
+      tags:
+        - plugins
+      summary: Update plugins
+      description: >-
+        Updates all plugins of type plugintype and with an _id matching a value
+        in targets arrays.
+      parameters:
+        - name: plugintype
+          in: path
+          description: >-
+            The plugin type, either componenttype, extensiontype, menutype or
+            themetype.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PluginsUpgraded'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targets:
+                  description: An array of plugin id's to be updated.
+                  type: array
+                  items:
+                    type: string
+              required:
+                - targets
+  '/extension/disable/{courseid}':
+    post:
+      tags:
+        - plugins
+      summary: >-
+        Remove extensions from a course TODO actually consumes JSON but swagger
+        does not allow this.
+      description: >-
+        End point for remove an extension from content collections for a given
+        course.
+      parameters:
+        - name: courseid
+          in: path
+          description: Course id from which the extensions will be removed.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                extensions:
+                  description: An array of extension id's to be removed.
+                  type: array
+                  items:
+                    type: string
+              required:
+                - extensions
+  '/extension/enable/{courseid}':
+    post:
+      tags:
+        - plugins
+      summary: >-
+        Adds extensions to a course TODO actually consumes JSON but swagger does
+        not allow this.
+      description: >-
+        End point for adding an extension to a course and its content
+        collections.
+      parameters:
+        - name: courseid
+          in: path
+          description: Course id to which the extensions will be added.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                extensions:
+                  description: An array of extension id's to be added.
+                  type: array
+                  items:
+                    type: string
+              required:
+                - extensions
+  '/menu/{menuid}/makeitso/{courseid}':
+    post:
+      tags:
+        - plugins
+      summary: >-
+        Enables a menu for a course TODO - if the courseid is not found it
+        returns success = true
+      description: End point for adding a menu plugin to a course.
+      parameters:
+        - name: menuid
+          in: path
+          description: The id of the menu plugin to be added.
+          required: true
+          schema:
+            type: string
+        - name: courseid
+          in: path
+          description: Course id to which the menu will be added.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/theme/{themeid}/makeitso/{courseid}':
+    post:
+      tags:
+        - plugins
+      summary: >-
+        Enables a theme for a course TODO - if the courseid is not found it
+        returns success = true
+      description: End point for adding a theme plugin to a course.
+      parameters:
+        - name: themeid
+          in: path
+          description: The id of the theme plugin to be added.
+          required: true
+          schema:
+            type: string
+        - name: courseid
+          in: path
+          description: Course id to which the theme will be added.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+        '404':
+          description: Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+  '/theme/preview/{themename}/{version}':
+    get:
+      tags:
+        - plugins
+      summary: Get the theme preview image
+      description: Endpoint for downloading the theme preview image
+      parameters:
+        - name: themename
+          in: path
+          description: The name of the theme.
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: The version of the theme.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Streams a image file
+  /upload/contentplugin:
+    post:
+      tags:
+        - plugins
+      summary: Upload plugins
+      description: End point for uploading plugins.
+      responses:
+        '200':
+          description: An object containing a success boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+  '/output/{plugin}/publish/{id}':
     get:
       tags:
         - output
       summary: Download/publish a course
-      description: 'Endpoint for downloading a built course. The standard plugin is "adapt". Alternative values would be defined in an output plugin installed in the authoring tool in: /plugins/output/'
-      produces:
-        - application/json
+      description: >-
+        Endpoint for downloading a built course. The standard plugin is "adapt".
+        Alternative values would be defined in an output plugin installed in the
+        authoring tool in: /plugins/output/
       parameters:
         - name: id
           in: path
           description: The id of the course to be downloaded.
           required: true
-          type: string
+          schema:
+            type: string
         - name: plugin
           in: path
           description: The plugin to be used for downloading.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
-          description: An object containing the a link to download the course and success status
-          schema:
-            $ref: '#/definitions/Download'
-  /output/{plugin}/preview/{id}:
+          description: >-
+            An object containing the a link to download the course and success
+            status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Download'
+  '/output/{plugin}/preview/{id}':
     get:
       tags:
         - output
       summary: Preview a course
-      description: 'Endpoint for previewing course. This is more of a trigger to builder a course. The preview window URL path is created in the frontend JS. The standard plugin is "adapt". Alternative values would be defined in an output plugin installed in the authoring tool in: /plugins/output/'
-      produces:
-        - application/json
+      description: >-
+        Endpoint for previewing course. This is more of a trigger to builder a
+        course. The preview window URL path is created in the frontend JS. The
+        standard plugin is "adapt". Alternative values would be defined in an
+        output plugin installed in the authoring tool in: /plugins/output/
       parameters:
         - name: id
           in: path
           description: The id of the course to be downloaded.
           required: true
-          type: string
+          schema:
+            type: string
         - name: plugin
           in: path
           description: The plugin to be used for downloading.
           required: true
-          type: string
+          schema:
+            type: string
       responses:
         '200':
-          description: An object containing the a link to download the course and success status
+          description: >-
+            An object containing the a link to download the course and success
+            status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preview'
+  '/download/{tenant}/{course}':
+    get:
+      tags:
+        - output
+      summary: Course download information
+      description: Return information for downloading the published course.
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be downloaded.
+          required: true
           schema:
-            $ref: '#/definitions/Preview'
-definitions:
-  Login:
-    type: object
-    properties:
-      success:
-        type: boolean
-      id:
-        type: string
-        description: Unique identifier for user.
-      email:
-        type: string
-        description: Users email.
-      tenantId:
-        type: string
-        description: ObjectId for users tenant.
-      tenantName:
-        type: string
-        description: Tenant name.
-      permissions:
-        type: array
-        items:
+            type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: >-
+            An object containing values useful for downloading the published
+            course
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Download'
+        '404':
+          description: Not found. HTML body response.
+  '/download/{tenant}/{course}/{title}/download.zip':
+    get:
+      tags:
+        - output
+      summary: Download a published course
+      description: Returns a zip of the published course.
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be downloaded.
+          required: true
+          schema:
+            type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          schema:
+            type: string
+        - name: title
+          in: path
+          description: The title of the course.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Streams a zip file of the published course
+  '/export/{tenant}/{course}':
+    get:
+      tags:
+        - output
+      summary: To be completed
+      description: To be completed
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be exported.
+          required: true
+          schema:
+            type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object
+  '/export/{tenant}/{course}/{title}/download.zip':
+    get:
+      tags:
+        - output
+      summary: To be completed. Download an exported course source zip
+      description: >-
+        To be completed, possibly returns a zip of the exported course source
+        files.
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be exported.
+          required: true
+          schema:
+            type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          schema:
+            type: string
+        - name: title
+          in: path
+          description: The title of the course.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Streams a zip file of the exported course
+  '/lang/{lang}':
+    get:
+      tags:
+        - language
+      summary: Returns selected language strings for I18n.
+      description: >-
+        Endpoint for application localisation. Returns default en.json if lang
+        not found.
+      parameters:
+        - name: lang
+          in: path
+          description: >-
+            The two letter language code used to define the installed language
+            in routes/lang.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object containing all translated values as key/value pairs.
+  /config/config.json:
+    get:
+      tags:
+        - configuration
+      summary: Returns allowed configuration keys.
+      description: >-
+        Endpoint for accessing allowed application configuration values. e.g max
+        login attempts.
+      responses:
+        '200':
+          description: An object containing allowed configuration keys.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+  /autocomplete/tag:
+    get:
+      tags:
+        - tags
+      summary: Returns all tags.
+      description: Endpoint for accessing tags. Returns all valid tags.
+      responses:
+        '200':
+          description: An object containing all tags.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tags'
+components:
+  schemas:
+    Login:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
           type: string
-  Usercreate:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Unique identifier for user.
-      email:
-        type: string
-        description: Users email.
-      failedLoginCount:
-        type: integer
-        format: int32
-        description: Number of failed login attempts.
-      roles:
-        type: array
-        items:
+          description: Unique identifier for user.
+        email:
           type: string
-        description: An array containing the unique id for each role assigned to the user.
-      auth:
-        type: string
-        description: Authentication type. By default this will return local.
-      idNumber:
-        type: string
-        description: Currently not used.
-      _tenantId:
-        type: string
-        description: Unique identifier for the tenant record assigned to this user.
-      _isDeleted:
-        type: boolean
-        description: Is this user flagged as deleted.
-  User:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Unique identifier for user.
-      email:
-        type: string
-        description: Users email.
-      firstAccess:
-        type: string
-        description: The date the user first accessed the application. In dateTime format.
-      lastAccess:
-        type: string
-        description: The date the user last accessed the application. In dateTime format.
-      failedLoginCount:
-        type: integer
-        format: int32
-        description: Number of failed login attempts.
-      roles:
-        type: array
-        items:
+          description: Users email.
+        tenantId:
+          type: string
+          description: ObjectId for users tenant.
+        tenantName:
+          type: string
+          description: Tenant name.
+        permissions:
+          type: array
+          items:
+            type: string
+    Usercreate:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for user.
+        email:
+          type: string
+          description: Users email.
+        failedLoginCount:
+          type: integer
+          format: int32
+          description: Number of failed login attempts.
+        roles:
+          type: array
+          items:
+            type: string
+          description: >-
+            An array containing the unique id for each role assigned to the
+            user.
+        auth:
+          type: string
+          description: Authentication type. By default this will return local.
+        idNumber:
+          type: string
+          description: Currently not used.
+        _tenantId:
+          type: string
+          description: Unique identifier for the tenant record assigned to this user.
+        _isDeleted:
+          type: boolean
+          description: Is this user flagged as deleted.
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for user.
+        email:
+          type: string
+          description: Users email.
+        firstAccess:
+          type: string
+          description: >-
+            The date the user first accessed the application. In dateTime
+            format.
+        lastAccess:
+          type: string
+          description: The date the user last accessed the application. In dateTime format.
+        failedLoginCount:
+          type: integer
+          format: int32
+          description: Number of failed login attempts.
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: Unique identifier for user.
+              name:
+                type: string
+                description: Unique identifier for user.
+          description: >-
+            An array containing the unique id for each role assigned to the
+            user.
+        auth:
+          type: string
+          description: Authentication type. By default this will return local.
+        idNumber:
+          type: string
+          description: Currently not used.
+        _tenantId:
           type: object
           properties:
             _id:
@@ -752,424 +2206,863 @@ definitions:
             name:
               type: string
               description: Unique identifier for user.
-        description: An array containing the unique id for each role assigned to the user.
-      auth:
-        type: string
-        description: Authentication type. By default this will return local.
-      idNumber:
-        type: string
-        description: Currently not used.
-      _tenantId:
+          description: Unique identifier for the tenant record assigned to this user.
+        _isDeleted:
+          type: boolean
+          description: Is this user flagged as deleted.
+    Me:
+      type: object
+      properties:
+        _isDeleted:
+          type: boolean
+          description: Is this user flagged as deleted.
+        _tenantId:
+          type: string
+          description: Unique identifier for the tenant record assigned to this user.
+        idNumber:
+          type: string
+          description: Currently not used.
+        auth:
+          type: string
+          description: Authentication type. By default this will return local.
+        roles:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: Unique identifier for user.
+              name:
+                type: string
+                description: Unique identifier for user.
+          description: >-
+            An array containing the unique id for each role assigned to the
+            user.
+        failedLoginCount:
+          type: integer
+          format: int32
+          description: Number of failed login attempts.
+        password:
+          type: string
+          description: The hashed password for user.
+        lastAccess:
+          type: string
+          description: The date the user last accessed the application. In dateTime format.
+        invalidatePermissionCache:
+          type: boolean
+          description: To be confirmed
+        firstAccess:
+          type: string
+          description: >-
+            The date the user first accessed the application. In dateTime
+            format.
+        email:
+          type: string
+          description: Users email.
+        _id:
+          type: string
+          description: Unique identifier for user.
+        __v:
+          type: integer
+          format: int32
+          description: To be confirmed
+        rolesAsName:
+          type: array
+          items:
+            type: string
+          description: An array containing the names of roles assigned to the user.
+    PasswordresetToken:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for this password reset attempt.
+        user:
+          type: string
+          description: Unique identifier for user.
+        issueDate:
+          type: string
+          description: The date the password reset token was generated. In dateTime format
+        ipAddress:
+          type: string
+          description: >-
+            The IP address of the original remote request that used
+            /user/resetpassword endpoint.
+    Register:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the new user.
+        email:
+          type: string
+          description: Email for new user.
+    UserSession:
+      type: object
+      properties:
+        isAuthenticated:
+          type: boolean
+        id:
+          type: string
+          description: Current authenticated user id.
+        tenantId:
+          type: string
+          description: Current authenticated users tenant id.
+        tenantName:
+          type: string
+          description: Current authenticated users tenant name.
+        email:
+          type: string
+        otherLoginLinks:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    Tenant:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for this tenant.
+        updatedAt:
+          type: string
+          description: The date the tenant record was last changed. In dateTime format.
+        createdAt:
+          type: string
+          description: The date the tenant record was created. In dateTime format.
+        database:
+          type: object
+          properties:
+            dbPort:
+              type: integer
+              format: int32
+              description: Tenant database port.
+            dbPass:
+              type: string
+              description: Password to access the tenant database.
+            dbUser:
+              type: string
+              description: Tenant database user account.
+            dbHost:
+              type: string
+              description: Tenant database host URL.
+            dbName:
+              type: string
+              description: Tenant database host URL.
+        displayName:
+          type: string
+          description: The display name for this tenant.
+        name:
+          type: string
+          description: The application name for this tenant.
+        isMaster:
+          type: boolean
+          description: Is this tenant a master tenant.
+        _isDeleted:
+          type: boolean
+          description: Is this tenant flagged as deleted.
+    TenantDelete:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    Course:
+      type: object
+      properties:
+        _globals:
+          type: object
+          properties:
+            _accessibility:
+              type: object
+              properties:
+                accessibilityToggleTextOn:
+                  type: string
+                accessibilityToggleTextOff:
+                  type: string
+                skipNavigationText:
+                  type: string
+                _accessibilityInstructions:
+                  type: object
+                  properties:
+                    touch:
+                      type: string
+                    notouch:
+                      type: string
+                    ipad:
+                      type: string
+                _ariaLabels:
+                  type: object
+                  properties:
+                    navigation:
+                      type: string
+                    skipNavigation:
+                      type: string
+                    menuLoaded:
+                      type: string
+                    menu:
+                      type: string
+                    menuItem:
+                      type: string
+                    menuViewButton:
+                      type: string
+                    page:
+                      type: string
+                    pageLoaded:
+                      type: string
+                    previous:
+                      type: string
+                    navigationBack:
+                      type: string
+                    navigationDrawer:
+                      type: string
+                    closeResources:
+                      type: string
+                    drawerBack:
+                      type: string
+                    drawer:
+                      type: string
+                    closePopup:
+                      type: string
+                    next:
+                      type: string
+                    done:
+                      type: string
+                    complete:
+                      type: string
+                    incomplete:
+                      type: string
+                    correct:
+                      type: string
+                    locked:
+                      type: string
+                    accessibilityToggleButton:
+                      type: string
+                    feedbackPopUp:
+                      type: string
+                    visited:
+                      type: string
+                    menuBack:
+                      type: string
+                    menuIndicatorHeading:
+                      type: string
+            _components:
+              type: object
+        _id:
+          type: string
+          description: Unique identifier for this course.
+        _start:
+          type: object
+          properties:
+            _isMenuDisabled:
+              type: boolean
+            _force:
+              type: boolean
+            _startIds:
+              type: array
+              items:
+                type: string
+            _isEnabled:
+              type: boolean
+        _type:
+          type: string
+        createdAt:
+          type: string
+        createdBy:
+          type: string
+        updatedAt:
+          type: string
+        customStyle:
+          type: string
+        _lockType:
+          type: string
+        _isShared:
+          type: boolean
+        _hasPreview:
+          type: boolean
+        _isSelected:
+          type: boolean
+        _classes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        _buttons:
+          type: object
+          properties:
+            disabledAriaLabel:
+              type: string
+            remainingAttemptText:
+              type: string
+            remainingAttemptsText:
+              type: string
+            _showFeedback:
+              type: object
+              properties:
+                ariaLabel:
+                  type: string
+                buttonText:
+                  type: string
+            _hideCorrectAnswer:
+              type: object
+              properties:
+                ariaLabel:
+                  type: string
+                buttonText:
+                  type: string
+            _showCorrectAnswer:
+              type: object
+              properties:
+                ariaLabel:
+                  type: string
+                buttonText:
+                  type: string
+            _reset:
+              type: object
+              properties:
+                ariaLabel:
+                  type: string
+                buttonText:
+                  type: string
+            _submit:
+              type: object
+              properties:
+                ariaLabel:
+                  type: string
+                buttonText:
+                  type: string
+        _latestTrackingId:
+          type: integer
+          format: int32
+        heroImage:
+          type: string
+        body:
+          type: string
+        displayTitle:
+          type: string
+        title:
+          type: string
+        _tenantId:
+          type: string
+        _isDeleted:
+          type: boolean
+    CourseCreate:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for this course.
+        _type:
+          type: string
+        createdAt:
+          type: string
+        createdBy:
+          type: string
+        updatedAt:
+          type: string
+        customStyle:
+          type: string
+        _lockType:
+          type: string
+        _isShared:
+          type: boolean
+        _hasPreview:
+          type: boolean
+        _isSelected:
+          type: boolean
+        _classes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        _buttons:
+          type: string
+        _latestTrackingId:
+          type: integer
+          format: int32
+        heroImage:
+          type: string
+        body:
+          type: string
+        displayTitle:
+          type: string
+        title:
+          type: string
+        _tenantId:
+          type: string
+        _isDeleted:
+          type: boolean
+    DuplicateCourse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        newCourseId:
+          type: string
+    MyCourse:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for this course.
+        _type:
+          type: string
+        createdAt:
+          type: string
+        createdBy:
+          type: string
+        updatedAt:
+          type: string
+        _isShared:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        heroImage:
+          type: string
+        title:
+          type: string
+        _tenantId:
+          type: string
+    ContentComponent:
+      type: array
+      items:
+        type: object
+        properties:
+          _componentTypeDisplayName:
+            type: string
+          _id:
+            type: string
+          updatedAt:
+            type: string
+          createdAt:
+            type: string
+          createdBy:
+            type: string
+          _layout:
+            type: string
+          _componentType:
+            type: string
+          _type:
+            type: string
+          _parentId:
+            type: string
+          _courseId:
+            type: string
+          body:
+            type: string
+          displayTitle:
+            type: string
+          title:
+            type: string
+          _isAvailable:
+            type: boolean
+          _isOptional:
+            type: boolean
+          _classes:
+            type: string
+          _component:
+            type: string
+          _isDeleted:
+            type: boolean
+    ContentNewLayout:
+      type: object
+      properties:
+        newLayout:
+          type: object
+          properties:
+            _layout:
+              type: string
+            _parentId:
+              type: string
+        siblingLayout:
+          type: object
+          properties:
+            _layout:
+              type: string
+            _parentId:
+              type: string
+    ClipboardCopyData:
+      type: object
+      properties:
+        objectId:
+          type: string
+        courseId:
+          type: string
+        referenceType:
+          type: string
+    ClipboardPasteData:
+      type: object
+      properties:
+        id:
+          type: string
+        parentId:
+          type: string
+        layout:
+          type: string
+        sortOrder:
+          type: string
+        courseId:
+          type: string
+    Assets:
+      type: array
+      items:
         type: object
         properties:
           _id:
             type: string
-            description: Unique identifier for user.
-          name:
+          createdAt:
             type: string
-            description: Unique identifier for user.
-        description: Unique identifier for the tenant record assigned to this user.
-      _isDeleted:
-        type: boolean
-        description: Is this user flagged as deleted.
-  Me:
-    type: object
-    properties:
-      _isDeleted:
-        type: boolean
-        description: Is this user flagged as deleted.
-      _tenantId:
-        type: string
-        description: Unique identifier for the tenant record assigned to this user.
-      idNumber:
-        type: string
-        description: Currently not used.
-      auth:
-        type: string
-        description: Authentication type. By default this will return local.
-      roles:
-        type: array
-        items:
-          type: object
-          properties:
-            _id:
-              type: string
-              description: Unique identifier for user.
-            name:
-              type: string
-              description: Unique identifier for user.
-        description: An array containing the unique id for each role assigned to the user.
-      failedLoginCount:
-        type: integer
-        format: int32
-        description: Number of failed login attempts.
-      password:
-        type: string
-        description: The hashed password for user.
-      lastAccess:
-        type: string
-        description: The date the user last accessed the application. In dateTime format.
-      invalidatePermissionCache:
-        type: boolean
-        description: To be confirmed
-      firstAccess:
-        type: string
-        description: The date the user first accessed the application. In dateTime format.
-      email:
-        type: string
-        description: Users email.
-      _id:
-        type: string
-        description: Unique identifier for user.
-      __v:
-        type: integer
-        format: int32
-        description: To be confirmed
-      rolesAsName:
-        type: array
-        items:
-          type: string
-        description: An array containing the names of roles assigned to the user.
-  PasswordresetToken:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Unique identifier for this password reset attempt.
-      user:
-        type: string
-        description: Unique identifier for user.
-      issueDate:
-        type: string
-        description: The date the password reset token was generated. In dateTime format
-      ipAddress:
-        type: string
-        description: The IP address of the original remote request that used /user/resetpassword endpoint.
-  Tenant:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Unique identifier for this tenant.
-      updatedAt:
-        type: string
-        description: The date the tenant record was last changed. In dateTime format.
-      createdAt:
-        type: string
-        description: The date the tenant record was created. In dateTime format.
-      database:
-        type: object
-        properties:
-          dbPort:
-            type: integer
-            format: int32
-            description: Tenant database port.
-          dbPass:
-            type: string
-            description: Password to access the tenant database.
-          dbUser:
-            type: string
-            description: Tenant database user account.
-          dbHost:
-            type: string
-            description: Tenant database host URL.
-          dbName:
-            type: string
-            description: Tenant database host URL.
-      displayName:
-        type: string
-        description: The display name for this tenant.
-      name:
-        type: string
-        description: The application name for this tenant.
-      isMaster:
-        type: boolean
-        description: Is this tenant a master tenant.
-      _isDeleted:
-        type: boolean
-        description: Is this tenant flagged as deleted.
-  TenantDelete:
-    type: object
-    properties:
-      success:
-        type: boolean
-      message:
-        type: string
-  Course:
-    type: object
-    properties:
-      _globals:
-        type: object
-        properties:
-          _accessibility:
+          metadata:
             type: object
             properties:
-              accessibilityToggleTextOn:
-                type: string
-              accessibilityToggleTextOff:
-                type: string
-              skipNavigationText:
-                type: string
-              _accessibilityInstructions:
-                type: object
-                properties:
-                  touch:
-                    type: string
-                  notouch:
-                    type: string
-                  ipad:
-                    type: string
-              _ariaLabels:
-                type: object
-                properties:
-                  navigation:
-                    type: string
-                  skipNavigation:
-                    type: string
-                  menuLoaded:
-                    type: string
-                  menu:
-                    type: string
-                  menuItem:
-                    type: string
-                  menuViewButton:
-                    type: string
-                  page:
-                    type: string
-                  pageLoaded:
-                    type: string
-                  previous:
-                    type: string
-                  navigationBack:
-                    type: string
-                  navigationDrawer:
-                    type: string
-                  closeResources:
-                    type: string
-                  drawerBack:
-                    type: string
-                  drawer:
-                    type: string
-                  closePopup:
-                    type: string
-                  next:
-                    type: string
-                  done:
-                    type: string
-                  complete:
-                    type: string
-                  incomplete:
-                    type: string
-                  correct:
-                    type: string
-                  locked:
-                    type: string
-                  accessibilityToggleButton:
-                    type: string
-                  feedbackPopUp:
-                    type: string
-                  visited:
-                    type: string
-                  menuBack:
-                    type: string
-                  menuIndicatorHeading:
-                    type: string
-          _components:
-            type: object
-      _id:
-        type: string
-        description: Unique identifier for this course.
-      _start:
-        type: object
-        properties:
-          _isMenuDisabled:
+              duration:
+                type: integer
+                format: int32
+          assetType:
+            type: string
+          mimeType:
+            type: string
+          thumbnailPath:
             type: boolean
-          _force:
-            type: boolean
-          _startIds:
-            type: array
-            items:
-              type: string
-          _isEnabled:
-            type: boolean
-      _type:
-        type: string
-      createdAt:
-        type: string
-      createdBy:
-        type: string
-      updatedAt:
-        type: string
-      customStyle:
-        type: string
-      _lockType:
-        type: string
-      _isShared:
-        type: boolean
-      _hasPreview:
-        type: boolean
-      _isSelected:
-        type: boolean
-      _classes:
-        type: string
-      tags:
-        type: array
-        items:
-          type: string
-      _buttons:
-        type: object
-        properties:
-          disabledAriaLabel:
+          directory:
             type: string
-          remainingAttemptText:
+          createdBy:
             type: string
-          remainingAttemptsText:
+          repository:
             type: string
-          _showFeedback:
-            type: object
-            properties:
-              ariaLabel:
-                type: string
-              buttonText:
-                type: string
-          _hideCorrectAnswer:
-            type: object
-            properties:
-              ariaLabel:
-                type: string
-              buttonText:
-                type: string
-          _showCorrectAnswer:
-            type: object
-            properties:
-              ariaLabel:
-                type: string
-              buttonText:
-                type: string
-          _reset:
-            type: object
-            properties:
-              ariaLabel:
-                type: string
-              buttonText:
-                type: string
-          _submit:
-            type: object
-            properties:
-              ariaLabel:
-                type: string
-              buttonText:
-                type: string
-      _latestTrackingId:
-        type: integer
-        format: int32
-      heroImage:
-        type: string
-      body:
-        type: string
-      displayTitle:
-        type: string
-      title:
-        type: string
-      _tenantId:
-        type: string
-      _isDeleted:
-        type: boolean
-  CourseCreate:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Unique identifier for this course.
-      _type:
-        type: string
-      createdAt:
-        type: string
-      createdBy:
-        type: string
-      updatedAt:
-        type: string
-      customStyle:
-        type: string
-      _lockType:
-        type: string
-      _isShared:
-        type: boolean
-      _hasPreview:
-        type: boolean
-      _isSelected:
-        type: boolean
-      _classes:
-        type: string
-      tags:
-        type: array
-        items:
-          type: string
-      _buttons:
-        type: string
-      _latestTrackingId:
-        type: integer
-        format: int32
-      heroImage:
-        type: string
-      body:
-        type: string
-      displayTitle:
-        type: string
-      title:
-        type: string
-      _tenantId:
-        type: string
-      _isDeleted:
-        type: boolean
-  DuplicateCourse:
-    type: object
-    properties:
-      success:
-        type: boolean
-      newCourseId:
-        type: string
-  Download:
-    type: object
-    properties:
-      success:
-        type: boolean
-      payload:
-        type: object
-        properties:
-          success:
-            type: boolean
+          path:
+            type: string
+          description:
+            type: string
           filename:
             type: string
-          zipName:
+          size:
             type: string
-  Preview:
-    type: object
-    properties:
-      success:
-        type: boolean
-      payload:
+          title:
+            type: string
+          tags:
+            type: array
+            items:
+              type: object
+              properties:
+                _id:
+                  type: string
+                title:
+                  type: string
+          isDirectory:
+            type: boolean
+          _isDeleted:
+            type: boolean
+    Asset:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+        metadata:
+          type: object
+          properties:
+            duration:
+              type: integer
+              format: int32
+        assetType:
+          type: string
+        mimeType:
+          type: string
+        thumbnailPath:
+          type: boolean
+        directory:
+          type: string
+        createdBy:
+          type: string
+        repository:
+          type: string
+        path:
+          type: string
+        description:
+          type: string
+        filename:
+          type: string
+        size:
+          type: string
+        title:
+          type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              title:
+                type: string
+        isDirectory:
+          type: boolean
+        _isDeleted:
+          type: boolean
+    AssetCreate:
+      type: object
+      properties:
+        success:
+          type: boolean
+        id:
+          type: string
+    Download:
+      type: object
+      properties:
+        success:
+          type: boolean
+        payload:
+          type: object
+          properties:
+            success:
+              type: boolean
+            filename:
+              type: string
+            zipName:
+              type: string
+    Preview:
+      type: object
+      properties:
+        success:
+          type: boolean
+        payload:
+          type: object
+          properties:
+            success:
+              type: boolean
+    ErrorCode:
+      type: object
+      properties:
+        success:
+          type: boolean
+        errorCode:
+          type: integer
+          format: int32
+    ErrorMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+    Config:
+      type: object
+      properties:
+        rootUrl:
+          type: string
+        outputPlugin:
+          type: string
+        masterTenantID:
+          type: string
+        recaptchaSiteKey:
+          type: string
+        useSmtp:
+          type: boolean
+        useffmpeg:
+          type: boolean
+        isProduction:
+          type: boolean
+        maxLoginAttempts:
+          type: integer
+          format: int32
+    Tags:
+      type: object
+      properties:
+        title:
+          type: string
+        value:
+          type: string
+        _id:
+          type: string
+    PluginArray:
+      type: array
+      items:
         type: object
         properties:
-          success:
+          _id:
+            type: string
+          issues:
+            type: string
+          homepage:
+            type: string
+          framework:
+            type: string
+          version:
+            type: string
+          description:
+            type: string
+          displayName:
+            type: string
+          name:
+            type: string
+          isLocalPackage:
             type: boolean
-  ErrorCode:
-    type: object
-    properties:
-      success:
-        type: boolean
-      errorCode:
-        type: integer
-        format: int32
-  ErrorMessage:
-    type: object
-    properties:
-      success:
-        type: boolean
-      message:
-        type: string
-  Success:
-    type: object
-    properties:
-      success:
-        type: boolean
+          _isAvailableInEditor:
+            type: boolean
+          _isDeleted:
+            type: boolean
+          globals:
+            type: object
+          properties:
+            type: object
+    PluginSingle:
+      type: object
+      properties:
+        _id:
+          type: string
+        issues:
+          type: string
+        homepage:
+          type: string
+        framework:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        displayName:
+          type: string
+        name:
+          type: string
+        isLocalPackage:
+          type: boolean
+        _isAvailableInEditor:
+          type: boolean
+        _isDeleted:
+          type: boolean
+        globals:
+          type: object
+        properties:
+          type: object
+    PluginCheck:
+      type: object
+      properties:
+        success:
+          type: boolean
+        isUpdateable:
+          type: boolean
+    PluginsUpgraded:
+      type: object
+      properties:
+        success:
+          type: boolean
+        upgraded:
+          type: array
+          items:
+            type: string
+    Roles:
+      type: array
+      items:
+        type: object
+        properties:
+          _id:
+            type: string
+          _isDeleted:
+            type: boolean
+          statement:
+            type: array
+            items:
+              type: object
+              properties:
+                effect:
+                  type: string
+                action:
+                  type: array
+                  items:
+                    type: string
+                resource:
+                  type: string
+                condition:
+                  type: object
+          version:
+            type: string
+          name:
+            type: string
+    Role:
+      type: object
+      properties:
+        _id:
+          type: string
+        _isDeleted:
+          type: boolean
+        statement:
+          type: array
+          items:
+            type: object
+            properties:
+              effect:
+                type: string
+              action:
+                type: array
+                items:
+                  type: string
+              resource:
+                type: string
+              condition:
+                type: object
+        version:
+          type: string
+        name:
+          type: string
+    RolePostRequestBody:
+      type: object
+      properties:
+        _isDeleted:
+          type: boolean
+        statement:
+          type: array
+          items:
+            type: object
+            properties:
+              effect:
+                type: string
+              action:
+                type: array
+                items:
+                  type: string
+              resource:
+                type: string
+              condition:
+                type: object
+        version:
+          type: string
+        name:
+          type: string
+    postUser:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        _tenantId:
+          type: string
+        role:
+          type: string
+    postContentCourse:
+      type: object
+      properties:
+        title:
+          type: string
+        displayName:
+          type: string
+        body:
+          type: string
+        _isShared:
+          type: boolean
+        createdBy:
+          type: string
