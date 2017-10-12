@@ -237,6 +237,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
         '500':
           description: Error
   '/role/{id}/unassign/{userid}':
@@ -265,6 +267,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
         '500':
           description: Error
   /role:
@@ -279,7 +283,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: '#/components/schemas/Roles'
         '500':
           description: Error.
     post:
@@ -324,6 +328,8 @@ paths:
             text/plain; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
         '500':
           description: Error.
     put:
@@ -345,6 +351,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '404':
+          description: Not found
         '500':
           description: Error.
       requestBody:
@@ -371,6 +379,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
         '500':
           description: Error.
   /user:
@@ -414,7 +424,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/postUser'
+              $ref: '#/components/schemas/postUser'
   '/user/{id}':
     get:
       tags:
@@ -435,6 +445,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '404':
+          description: Not found
         '500':
           description: Error.
     put:
@@ -456,13 +468,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Usercreate'
+        '404':
+          description: Not found
         '500':
           description: Error.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/postUser'
+              $ref: '#/components/schemas/postUser'
     delete:
       tags:
         - users
@@ -482,6 +496,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '404':
+          description: Not found
         '500':
           description: Error.
   /user/me:
@@ -643,6 +659,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Tenant'
+        '404':
+          description: Not found
         '500':
           description: Error.
     put:
@@ -666,6 +684,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Tenant'
+        '404':
+          description: Not found
         '500':
           description: Error.
       requestBody:
@@ -706,6 +726,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TenantDelete'
+        '404':
+          description: Not found
         '500':
           description: Error.
   /content/course:
@@ -750,7 +772,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/postContentCourse'
+              $ref: '#/components/schemas/postContentCourse'
   '/content/course/{id}':
     get:
       tags:
@@ -774,13 +796,16 @@ paths:
             text/plain; charset=utf-8:
               schema:
                 $ref: '#/components/schemas/Course'
-        '500':
-          description: Error.
+        '404':
+          description: Not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
-            text/plain; charset=utf-8:
+        '500':
+          description: Error.
+          content:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
     put:
@@ -815,7 +840,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/requestBodies/postContentCourse'
+              $ref: '#/components/schemas/postContentCourse'
     delete:
       tags:
         - courses
@@ -878,9 +903,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessage'
-            text/plain; charset=utf-8:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
+        '404':
+          description: Not found.
   /my/course:
     get:
       tags:
@@ -1014,6 +1038,12 @@ paths:
       responses:
         '200':
           description: An object containing content JSON.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '500':
           description: Error.
           content:
@@ -1129,6 +1159,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
         '500':
           description: Error.
           content:
@@ -1263,6 +1299,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Asset'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
     put:
       tags:
         - assets
@@ -1388,6 +1430,12 @@ paths:
       responses:
         '200':
           description: An an asset file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
   '/asset/thumb/{id}':
     get:
       tags:
@@ -1404,6 +1452,12 @@ paths:
       responses:
         '200':
           description: An an asset thumbnail file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
   '/shared/asset/{id}':
     get:
       tags:
@@ -1420,6 +1474,12 @@ paths:
       responses:
         '200':
           description: An an asset file
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
   '/{plugintype}':
     get:
       tags:
@@ -1475,9 +1535,7 @@ paths:
         '404':
           description: Error.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessage'
+            application/html:
     put:
       tags:
         - plugins
@@ -1507,6 +1565,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
+        '404':
+          description: Error.
+          content:
+            application/html:
       requestBody:
         content:
           application/json:
@@ -1881,6 +1943,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Download'
+        '404':
+          description: Not found. HTML body response.
   '/download/{tenant}/{course}/{title}/download.zip':
     get:
       tags:
@@ -2950,41 +3014,27 @@ components:
           type: string
         name:
           type: string
-  requestBodies:
     postUser:
       type: object
       properties:
         email:
-          description: users email address.
           type: string
         password:
-          description: Password string.
           type: string
         _tenantId:
-          description: Collection id for tenant that the user will be assigned to.
           type: string
         role:
-          description: Collection id for role that the user will be assigned.
           type: string
-      required:
-        - email
     postContentCourse:
       type: object
       properties:
         title:
-          description: Title shown in the authoring tool.
           type: string
         displayName:
-          description: Display title.
           type: string
         body:
-          description: Course body text.
           type: string
         _isShared:
-          description: Set if course is private or shared between tenant users.
           type: boolean
         createdBy:
-          description: 'User Id, assigns ownership of the course.'
           type: string
-      required:
-        - title
