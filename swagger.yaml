@@ -739,13 +739,13 @@ paths:
       parameters:
         - name: id
           in: path
-          description: The tenant id.
+          description: The id or the course to be duplicated.
           required: true
           schema:
             type: string
         - name: userId
           in: path
-          description: The tenant user id.
+          description: The tenant user id. This user will own the new course and must be a user in the tenant the course is being copied to.
           required: true
           schema:
             type: string
