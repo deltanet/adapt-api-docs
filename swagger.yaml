@@ -730,7 +730,7 @@ paths:
           description: Not found
         '500':
           description: Error.
-  /tenant/duplicatecourse/{id}/{userId}:
+  /duplicatecourse/{id}/{userId}:
     get:
       tags:
         - tenants
