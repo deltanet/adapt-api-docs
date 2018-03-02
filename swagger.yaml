@@ -70,36 +70,6 @@ paths:
                   type: string
               required:
                 - email
-  /loginas:
-    post:
-      tags:
-        - auth
-      summary: Login as
-      description: Not sure what this is for.
-      responses:
-        '200':
-          description: Successful login
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Login'
-        '401':
-          description: Unauthorised
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorCode'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  description: Unique identifier representing a specific user.
-                  type: string
-              required:
-                - email
   /logout:
     post:
       tags:
@@ -113,36 +83,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
-  /register:
-    post:
-      tags:
-        - auth
-      summary: Register
-      description: Not sure if this is used or not...
-      responses:
-        '200':
-          description: New user account details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Register'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  description: Unique identifier representing a specific user.
-                  type: string
-                password:
-                  description: Password.
-                  type: string
-                retypePassword:
-                  description: Password confirmation.
-                  type: string
-              required:
-                - email
   /authcheck:
     get:
       tags:
@@ -2106,8 +2046,6 @@ components:
     Login:
       type: object
       properties:
-        success:
-          type: boolean
         id:
           type: string
           description: Unique identifier for user.
@@ -2289,15 +2227,6 @@ components:
           description: >-
             The IP address of the original remote request that used
             /user/resetpassword endpoint.
-    Register:
-      type: object
-      properties:
-        _id:
-          type: string
-          description: Unique identifier for the new user.
-        email:
-          type: string
-          description: Email for new user.
     UserSession:
       type: object
       properties:
@@ -2842,8 +2771,6 @@ components:
     ErrorCode:
       type: object
       properties:
-        success:
-          type: boolean
         errorCode:
           type: integer
           format: int32
