@@ -1993,6 +1993,30 @@ paths:
       responses:
         '200':
           description: Streams a zip file of the exported course
+  '/build/{tenant}/{course}':
+    get:
+      tags:
+        - output
+      summary: Triggers a build of ourse
+      description: >-
+        Returns an object containing details of the build.
+        files.
+      parameters:
+        - name: tenant
+          in: path
+          description: The id of the tenant for the course to be built.
+          required: true
+          schema:
+            type: string
+        - name: course
+          in: path
+          description: The id of the course.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: An object
   '/lang/{lang}':
     get:
       tags:
